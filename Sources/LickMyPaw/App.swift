@@ -1,7 +1,16 @@
 import SwiftUI
 import AppKit
 
-enum Page { case home, prowl, cleanup, apps, clutter, performance, settings }
+enum Page { case home, prowl, cleanup, apps, clutter, performance, purr, protection, settings }
+
+/// Cross-module navigation without shared state: Nav.go("cleanup") from any view (used by Purr's "Review" buttons).
+enum Nav {
+    static let notification = Notification.Name("LickMyPaw.navigate")
+    static func go(_ page: String) { NotificationCenter.default.post(name: notification, object: nil, userInfo: ["page": page]) }
+    static func page(named n: String) -> Page? {
+        ["home": .home, "prowl": .prowl, "cleanup": .cleanup, "apps": .apps, "clutter": .clutter, "performance": .performance, "purr": .purr, "protection": .protection, "settings": .settings][n]
+    }
+}
 
 let spring = Animation.spring(response: 0.45, dampingFraction: 0.86)
 
@@ -189,6 +198,8 @@ struct ContentView: View {
                         case .cleanup: CleanupView()
                         case .apps: AppsView()
                         case .clutter: ClutterView()
+                        case .purr: PurrView()
+                        case .protection: ProtectionView()
                         case .performance: PerformanceView()
                         case .settings: SettingsView()
                         }
@@ -197,6 +208,7 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onReceive(NotificationCenter.default.publisher(for: Nav.notification)) { n in if let p = (n.userInfo?["page"] as? String).flatMap(Nav.page(named:)) { m.page = p } }
         .frame(minWidth: 980, minHeight: 620)
         .onAppear { let a = CommandLine.arguments; if let i = a.firstIndex(of: "--open"), i + 1 < a.count { m.scan(a[i + 1]) }
             if let i = a.firstIndex(of: "--page"), i + 1 < a.count { switch a[i + 1] { case "cleanup": m.page = .cleanup; case "apps": m.page = .apps; case "settings": m.page = .settings; case "prowl": m.page = .prowl; default: break } } }
@@ -222,10 +234,11 @@ struct ContentView: View {
             navItem("circle.hexagongrid.fill", "Prowl", page: .prowl)
             navItem("trash.fill", "Cleanup", page: .cleanup)
             navItem("square.grid.2x2.fill", "Applications", page: .apps)
+            navItem("sparkles", "Purr", page: .purr)
+            navItem("shield.lefthalf.filled", "Protection", page: .protection)
             navItem("tray.full.fill", "Clutter", page: .clutter)
             navItem("bolt.fill", "Performance", page: .performance)
             Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1).padding(.vertical, 4)
-            ForEach(Self.future, id: \.1) { navItem($0.0, $0.1, page: nil) }
             Spacer()
             navItem("gearshape.fill", "Settings", page: .settings).padding(.bottom, 14)
         }.padding(.top, 52).frame(width: 74).background(Color.black.opacity(0.18)).ignoresSafeArea()
@@ -274,9 +287,9 @@ struct ContentView: View {
                 Text(T("Tools")).font(.system(size: 18, weight: .semibold, design: .rounded)).padding(.top, 4)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 16)], spacing: 16) {
                     ModuleCard(icon: "circle.hexagongrid.fill", title: "Prowl", text: T("Visual map of your storage: find and remove what weighs the most."), active: true) { m.page = .prowl }
-                    ModuleCard(icon: "sparkles", title: "Purr", text: T("Quick check of cleanup, protection and performance."), active: false) {}
+                    ModuleCard(icon: "sparkles", title: "Purr", text: T("Quick check of cleanup, protection and performance."), active: true) { m.page = .purr }
                     ModuleCard(icon: "trash.fill", title: T("Cleanup"), text: T("Useless caches, logs and system files."), active: true) { m.page = .cleanup }
-                    ModuleCard(icon: "shield.lefthalf.filled", title: T("Protection"), text: T("Scan for malware and privacy threats."), active: false) {}
+                    ModuleCard(icon: "shield.lefthalf.filled", title: T("Protection"), text: T("Scan for malware and privacy threats."), active: true) { m.page = .protection }
                     ModuleCard(icon: "bolt.fill", title: T("Performance"), text: T("Processes, login items, maintenance."), active: true) { m.page = .performance }
                     ModuleCard(icon: "tray.full.fill", title: T("Clutter"), text: T("Find large, old and duplicate files."), active: true) { m.page = .clutter }
                     ModuleCard(icon: "square.grid.2x2.fill", title: T("Applications"), text: T("Uninstall and update apps."), active: true) { m.page = .apps }
