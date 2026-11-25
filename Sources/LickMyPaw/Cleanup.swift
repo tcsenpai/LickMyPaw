@@ -3,7 +3,7 @@ import SwiftUI
 private func C(_ k: String) -> String { TT(k, "Cleanup") }
 
 struct CleanupView: View {
-    @StateObject private var m = CleanupModel()
+    @ObservedObject private var m = CleanupModel.shared
     @State private var confirm = false
 
     var body: some View {
@@ -14,15 +14,25 @@ struct CleanupView: View {
                     Text(C("Cleanup")).font(.system(size: 28, weight: .bold, design: .rounded)).foregroundStyle(.white)
                     Spacer()
                     if m.phase == .ready || m.phase == .done || m.phase == .idle {
-                        Button(C("Scan")) { m.scan() }.buttonStyle(SoftButton())
+                        Button(m.hasScanned ? C("Rescan") : C("Scan")) { m.scan() }.buttonStyle(SoftButton())
                     }
                 }
+                notes
                 content
                 if m.phase == .ready { bar }
             }.padding(24)
         }
-        .onAppear { if m.phase == .idle { m.scan() } }
+        .onAppear { m.appear() }
         .sheet(isPresented: $confirm) { confirmSheet }
+    }
+
+    @ViewBuilder private var notes: some View {
+        if let n = m.savedNote {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(n)
+                if m.stale { Text(C("Updated after recent actions — Rescan to be sure")) }
+            }.font(.caption).foregroundStyle(.white.opacity(0.6)).frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     @ViewBuilder private var content: some View {
@@ -148,5 +158,37 @@ enum CleanupSelfTest {
         t.check(bad2.count == 1 && fm.fileExists(atPath: outside), "automatic mode refuses a path outside the allow-list")
         try? Engine.undo(ok[0])
         t.check(fm.fileExists(atPath: a.path), "undo restores")
+
+        // --- session cache ---
+        final class Box: @unchecked Sendable { var n = 0 }
+        let sc = Box()
+        let m = CleanupModel(scanFn: { sc.n += 1; return CleanupModel.defaultScan() })
+        m.appear(); await m.scanTask?.value; t.reachedCode()
+        m.appear(); m.appear(); await m.scanTask?.value
+        t.check(sc.n == 1 && m.hasScanned && m.scannedAt != nil && !m.stale && m.phase == .ready, "opening twice scans exactly once (\(sc.n))")
+        m.scan(); await m.scanTask?.value
+        t.check(sc.n == 2, "explicit rescan scans again")
+        let ids = m.groups.flatMap(\.items)
+        let ia = ids.first { $0.name == "com.test.b" }!, ib = ids.first { $0.name == "com.test.a" }!
+        m.toggle(ia.id)   // user deselects b
+        let selBefore = m.selected
+        m.handleEngineChange(op: "trash", paths: [ib.path])
+        t.check(!m.groups.flatMap(\.items).contains { $0.id == ib.id } && m.stale, "foreign trash removes item and sets stale")
+        t.check(m.selected == selBefore.subtracting([ib.id]) && !m.selected.contains(ia.id), "other selection preserved")
+        t.check(sc.n == 2, "no rescan after engine change")
+        let now = Date()
+        t.check(CleanupModel.relative(now, now: now) == TT("just now", "Cleanup") && CleanupModel.relative(now.addingTimeInterval(-59), now: now) == TT("just now", "Cleanup")
+                && CleanupModel.relative(now.addingTimeInterval(-180), now: now) == TTF("%d min ago", "Cleanup", 3)
+                && CleanupModel.relative(now.addingTimeInterval(-7300), now: now) == TTF("%d h ago", "Cleanup", 2)
+                && CleanupModel.relative(now.addingTimeInterval(-200_000), now: now) == TTF("%d d ago", "Cleanup", 2), "relative time text")
+        let sc2 = Box()
+        let m2 = CleanupModel(scanFn: { sc2.n += 1; return CleanupModel.defaultScan() })
+        m2.appear(); await m2.scanTask?.value
+        let before = m2.selectedItems.count
+        m2.clean(); await m2.cleanTask?.value
+        try? await Task.sleep(nanoseconds: 300_000_000)   // let Engine.didChange deliver
+        t.check(sc2.n == 1 && m2.phase == .done && !m2.stale && before > 0, "own clean: no rescan, not stale")
+        t.check(!m2.batch.isEmpty && m2.groups.allSatisfy { g in g.items.allSatisfy { fm.fileExists(atPath: $0.path) } }, "own clean updates list in place")
+        m2.undo(); t.check(m2.stale && m2.undone, "undo marks stale")
     }
 }

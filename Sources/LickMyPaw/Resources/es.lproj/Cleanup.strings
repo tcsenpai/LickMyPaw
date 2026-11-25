@@ -27,3 +27,10 @@
 "Gradle caches" = "Cachés de Gradle";
 "pip / uv cache" = "Caché de pip / uv";
 "Homebrew cache" = "Caché de Homebrew";
+"Rescan" = "Reanalizar";
+"just now" = "ahora mismo";
+"%d min ago" = "hace %d min";
+"%d h ago" = "hace %d h";
+"%d d ago" = "hace %d d";
+"Saved results from %@ (%@) — press Rescan to refresh" = "Resultados guardados a las %@ (%@) — pulsa Reanalizar para actualizar";
+"Updated after recent actions — Rescan to be sure" = "Actualizado tras acciones recientes — Reanaliza para asegurarte";
