@@ -11,7 +11,7 @@ import SwiftUI
     let provider: ProcessSnapshotProvider, killer: ProcessKiller
     let ownPid = getpid(), myUid = getuid()
     private var all: [ProcInfo] = []
-    init(provider: ProcessSnapshotProvider = LibprocProvider(), killer: ProcessKiller = RealKiller()) { self.provider = provider; self.killer = killer }
+    init(provider: ProcessSnapshotProvider = Demo.enabled ? Demo.Procs() : LibprocProvider(), killer: ProcessKiller = RealKiller()) { self.provider = provider; self.killer = killer }
     var shown: [ProcGroup] { query.isEmpty ? groups : groups.filter { $0.name.localizedCaseInsensitiveContains(query) } }
     func refresh() async {
         let p = provider

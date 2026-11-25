@@ -46,6 +46,7 @@ enum TrashBin {
         }
     }
     func refresh() async {
+        if Demo.enabled { return }
         let s = await Task.detached(priority: .utility) { TrashBin.size() }.value
         size = s; loaded = true
     }

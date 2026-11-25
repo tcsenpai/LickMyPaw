@@ -3,7 +3,7 @@ import SwiftUI
 /// Performance page = tabs. Each tab is owned by its module file (StartupView.swift, ProcessesView.swift).
 struct PerformanceView: View {
     enum Tab: String, CaseIterable { case startup = "Startup", processes = "Processes" }
-    @State private var tab: Tab = .startup
+    @State private var tab: Tab = Demo.perfProcesses ? .processes : .startup
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {

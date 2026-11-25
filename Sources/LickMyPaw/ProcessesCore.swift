@@ -102,6 +102,7 @@ enum Pressure { case normal, warning, critical }
 
 enum MemoryReader {
     static func read() -> MemStats? {
+        if Demo.enabled { return Demo.mem }
         var total: UInt64 = 0; var sz = MemoryLayout<UInt64>.size
         guard sysctlbyname("hw.memsize", &total, &sz, nil, 0) == 0, total > 0 else { return nil }
         var vm = vm_statistics64(); var cnt = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)

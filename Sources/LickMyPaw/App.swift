@@ -29,6 +29,7 @@ let spring = Animation.spring(response: 0.45, dampingFraction: 0.86)
     private var progress: Progress?
 
     var volume: (name: String, total: Int64, free: Int64)? {
+        if Demo.enabled { return Demo.disk }
         guard let p = root?.path,
               let v = try? URL(fileURLWithPath: p).resourceValues(forKeys: [.volumeNameKey, .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey]),
               let t = v.volumeTotalCapacity, let f = v.volumeAvailableCapacityForImportantUsage else { return nil }
@@ -221,7 +222,8 @@ struct ContentView: View {
         .preferredColorScheme(.dark)
         .onReceive(NotificationCenter.default.publisher(for: Nav.notification)) { n in if let p = (n.userInfo?["page"] as? String).flatMap(Nav.page(named:)) { m.page = p } }
         .frame(minWidth: 980, minHeight: 620)
-        .onAppear { let a = CommandLine.arguments; if let i = a.firstIndex(of: "--open"), i + 1 < a.count { m.scan(a[i + 1]) }
+        .onAppear { if Demo.enabled { Demo.apply(m); return }
+            let a = CommandLine.arguments; if let i = a.firstIndex(of: "--open"), i + 1 < a.count { m.scan(a[i + 1]) }
             if let i = a.firstIndex(of: "--page"), i + 1 < a.count { switch a[i + 1] { case "cleanup": m.page = .cleanup; case "apps": m.page = .apps; case "settings": m.page = .settings; case "prowl": m.page = .prowl; default: break } } }
         .alert(T("Error"), isPresented: Binding(get: { m.error != nil }, set: { if !$0 { m.error = nil } })) {
             Button("OK") { m.error = nil }
@@ -275,7 +277,7 @@ struct ContentView: View {
 
     var home: some View {
         let v = diskInfo()
-        let first = NSFullUserName().split(separator: " ").first.map(String.init) ?? ""
+        let first = Demo.enabled ? "Alex" : NSFullUserName().split(separator: " ").first.map(String.init) ?? ""
         return ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -311,6 +313,7 @@ struct ContentView: View {
     }
 
     func diskInfo() -> (name: String, total: Int64, free: Int64) {
+        if Demo.enabled { return Demo.disk }
         let u = URL(fileURLWithPath: "/")
         let v = try? u.resourceValues(forKeys: [.volumeNameKey, .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey])
         return (v?.volumeName ?? T("Disk"), Int64(v?.volumeTotalCapacity ?? 0), v?.volumeAvailableCapacityForImportantUsage ?? 0)
@@ -502,6 +505,7 @@ struct ContentView: View {
             exit(0)
         }
         if let i = CommandLine.arguments.firstIndex(of: "--selftest") { let only = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : nil; Task { @MainActor in await SelfTests.main(only: only) }; dispatchMain() }
+        if let i = CommandLine.arguments.firstIndex(of: "--demo-shots"), i + 1 < CommandLine.arguments.count { MainActor.assumeIsolated { Demo.shots(CommandLine.arguments[i + 1]) } }
         let pa = CommandLine.arguments   // headless page render: LickMyPaw --render-page cleanup|apps|settings|guide <out.png>
         if let i = pa.firstIndex(of: "--render-page"), i + 2 < pa.count {
             MainActor.assumeIsolated {
