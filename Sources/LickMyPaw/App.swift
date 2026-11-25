@@ -184,7 +184,7 @@ struct ContentView: View {
                 ZStack {
                     if m.page == .home { home.transition(.opacity.combined(with: .scale(scale: 0.985))) }
                     else { spaceLensPage.transition(.opacity.combined(with: .scale(scale: 0.985))) }
-                }.animation(spring, value: m.page)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity).animation(spring, value: m.page)
             }
         }
         .preferredColorScheme(.dark)
@@ -319,7 +319,7 @@ struct ContentView: View {
                 VStack(spacing: 12) { diskCard; listCard(cur) }.frame(width: 360)
                 VStack(spacing: 8) {
                     pathBar(cur)
-                    BubbleView(parent: cur, checked: m.checked, onOpen: { n in withAnimation(spring) { m.open(n) } }, onToggle: { n in withAnimation(.easeOut(duration: 0.15)) { m.toggle(n) } })
+                    BubbleView(parent: cur, checked: m.checked, onOpen: { n in withAnimation(spring) { m.open(n) } }, onToggle: { n in withAnimation(.easeOut(duration: 0.15)) { m.toggle(n) } }, onReveal: { m.reveal($0) })
                         .id(cur.id.hashValue ^ cur.children.count).transition(.opacity)
                     bottomBar
                 }
@@ -375,7 +375,8 @@ struct ContentView: View {
         .padding(.horizontal, 8).padding(.vertical, 6).contentShape(Rectangle())
         .background(on ? Color.white.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .animation(.easeOut(duration: 0.15), value: on)
-        .onTapGesture { if n.isDir { withAnimation(spring) { m.open(n) } } else { withAnimation(.easeOut(duration: 0.15)) { m.toggle(n) } } }
+        .onTapGesture(count: 2) { if n.isDir { withAnimation(spring) { m.open(n) } } else { m.reveal(n) } }
+        .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { m.toggle(n) } }
         .contextMenu {
             if n.isDir { Button(T("Open")) { m.open(n) } }
             if !n.isAggregate {
@@ -464,7 +465,7 @@ struct ContentView: View {
         if let i = a.firstIndex(of: "--render"), i + 2 < a.count {
             MainActor.assumeIsolated {
                 let root = Scanner.scan(path: a[i + 1], progress: Progress())
-                let v = ZStack { Background(); BubbleView(parent: root, checked: Set(root.children.prefix(1)), onOpen: { _ in }, onToggle: { _ in }) }.frame(width: 900, height: 600)
+                let v = ZStack { Background(); BubbleView(parent: root, checked: Set(root.children.prefix(1)), onOpen: { _ in }, onToggle: { _ in }, scrollable: false) }.frame(width: 900, height: 600)
                 let r = ImageRenderer(content: v); r.scale = 1
                 guard let img = r.nsImage, let tiff = img.tiffRepresentation, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) else { print("render failed"); exit(1) }
                 try? png.write(to: URL(fileURLWithPath: a[i + 2])); print("bubbles=\(makeBubbles(root, size: CGSize(width: 900, height: 600)).count) -> \(a[i + 2])")

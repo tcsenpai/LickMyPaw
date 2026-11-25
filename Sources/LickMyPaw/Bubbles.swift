@@ -54,9 +54,12 @@ func packCircles(_ radii: [CGFloat], gap: CGFloat = 0.04) -> [CGPoint] {
     return pts
 }
 
-func makeBubbles(_ parent: Node, size: CGSize, maxBubbles: Int = 22) -> [Bubble] {
+func makeBubbles(_ parent: Node, size: CGSize) -> [Bubble] { layoutBubbles(parent, size: size).bubbles }
+
+/// Packs bubbles to fit the view; when there are too many, bubbles keep a minimum size and the content grows (view scrolls).
+func layoutBubbles(_ parent: Node, size: CGSize, maxBubbles: Int = 120, minRadius: CGFloat = 32) -> (bubbles: [Bubble], content: CGSize) {
     let kids = Array(parent.children.prefix(maxBubbles))
-    guard let top = kids.first, top.size > 0, size.width > 50, size.height > 50 else { return [] }
+    guard let top = kids.first, top.size > 0, size.width > 50, size.height > 50 else { return ([], size) }
     let rest = parent.children.dropFirst(maxBubbles).reduce(Int64(0)) { $0 + $1.size }
     var items: [(Node?, String, Int64)] = kids.map { ($0, $0.displayName, $0.size) }
     if rest > 0 { items.append((nil, T("Other items"), rest)) }
@@ -66,11 +69,13 @@ func makeBubbles(_ parent: Node, size: CGSize, maxBubbles: Int = 22) -> [Bubble]
     var minX = CGFloat.infinity, maxX = -CGFloat.infinity, minY = CGFloat.infinity, maxY = -CGFloat.infinity
     for (p, r) in zip(pts, radii) { minX = min(minX, p.x - r); maxX = max(maxX, p.x + r); minY = min(minY, p.y - r); maxY = max(maxY, p.y + r) }
     let pad: CGFloat = 16
-    let k = min((size.width - pad * 2) / (maxX - minX), (size.height - pad * 2) / (maxY - minY))
-    let ox = size.width / 2 - (minX + maxX) / 2 * k, oy = size.height / 2 - (minY + maxY) / 2 * k
-    return items.enumerated().map { i, it in
+    let fit = min((size.width - pad * 2) / (maxX - minX), (size.height - pad * 2) / (maxY - minY))
+    let k = max(fit, minRadius / radii.min()!)
+    let content = CGSize(width: max(size.width, (maxX - minX) * k + pad * 2), height: max(size.height, (maxY - minY) * k + pad * 2))
+    let ox = content.width / 2 - (minX + maxX) / 2 * k, oy = content.height / 2 - (minY + maxY) / 2 * k
+    return (items.enumerated().map { i, it in
         Bubble(id: i, node: it.0, label: it.1, size: it.2, center: CGPoint(x: pts[i].x * k + ox, y: pts[i].y * k + oy), r: radii[i] * k)
-    }
+    }, content)
 }
 
 struct BubbleView: View {
@@ -78,12 +83,16 @@ struct BubbleView: View {
     let checked: Set<Node>
     var onOpen: (Node) -> Void
     var onToggle: (Node) -> Void
+    var onReveal: (Node) -> Void = { _ in }
+    var scrollable = true            // false only for headless --render (ImageRenderer cannot draw ScrollView)
     @State private var hover: Int?
     @State private var shown = false
 
     var body: some View {
         GeometryReader { g in
-            let bubbles = makeBubbles(parent, size: g.size)
+            let lay = layoutBubbles(parent, size: g.size)
+            let bubbles = lay.bubbles
+            Wrap(scrollable: scrollable, center: CGPoint(x: lay.content.width / 2, y: lay.content.height / 2)) {
             ZStack {
                 ForEach(bubbles) { b in
                     let on = b.node.map { checked.contains($0) } ?? false
@@ -94,12 +103,17 @@ struct BubbleView: View {
                                                   : AnyShapeStyle(LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.08)], startPoint: .top, endPoint: .bottom)),
                                               lineWidth: on ? 3.5 : 1.4)
                         VStack(spacing: 2) {
-                            if let n = b.node, b.r > 26 {
-                                Image(nsImage: Icons.icon(n)).resizable().interpolation(.high).scaledToFit().frame(width: b.r * (b.r > 55 ? 0.85 : 0.95), height: b.r * (b.r > 55 ? 0.85 : 0.95))
-                            } else if b.node == nil && b.r > 26 {
-                                Image(systemName: "ellipsis.circle.fill").font(.system(size: b.r * 0.5)).foregroundStyle(.white.opacity(0.8))
+                            let full = b.r > 44, named = b.r >= 30
+                            let side = b.r * (full ? (b.r > 55 ? 0.85 : 0.95) : (named ? 0.62 : 1.0))
+                            if let n = b.node {
+                                Image(nsImage: Icons.icon(n)).resizable().interpolation(.high).scaledToFit().frame(width: side, height: side)
+                            } else {
+                                Image(systemName: "ellipsis.circle.fill").font(.system(size: side * 0.6)).foregroundStyle(.white.opacity(0.8))
                             }
-                            if b.r > 44 {
+                            if named && !full {
+                                Text(b.label).font(.system(size: 9.5, weight: .semibold, design: .rounded)).lineLimit(1).minimumScaleFactor(0.7)
+                            }
+                            if full {
                                 Text(b.label).font(.system(size: min(15, max(10, b.r / 6.5)), weight: .semibold, design: .rounded)).lineLimit(1)
                                 Text(fmt(b.size)).font(.system(size: min(14, max(9, b.r / 7)), design: .rounded)).opacity(0.9)
                             }
@@ -111,12 +125,39 @@ struct BubbleView: View {
                     .scaleEffect(hover == b.id ? 1.05 : 1)
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hover)
                     .position(b.center)
-                    .help("\(b.label) — \(fmt(b.size))")
                     .onHover { hover = $0 ? b.id : (hover == b.id ? nil : hover) }
-                    .onTapGesture { if let n = b.node { if n.isDir { onOpen(n) } else { onToggle(n) } } }
+                    .onTapGesture(count: 2) { if let n = b.node { if n.isDir { onOpen(n) } else { onReveal(n) } } }
+                    .onTapGesture { if let n = b.node { onToggle(n) } }
                     .contextMenu { if let n = b.node { Button(on ? T("Deselect") : T("Select")) { onToggle(n) } } }
                 }
+                if let h = hover, let b = bubbles.first(where: { $0.id == h }) {
+                    Text("\(b.label) — \(fmt(b.size))").font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(.white)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(Capsule().fill(Color.black.opacity(0.7))).overlay(Capsule().strokeBorder(Color.white.opacity(0.2)))
+                        .fixedSize().position(x: min(max(b.center.x, 90), lay.content.width - 90), y: max(b.center.y - b.r - 14, 14))
+                        .allowsHitTesting(false).zIndex(10)
+                }
+            }.frame(width: lay.content.width, height: lay.content.height)
             }.frame(width: g.size.width, height: g.size.height)
         }.onAppear { shown = true }
+    }
+}
+
+struct Wrap<C: View>: View {
+    let scrollable: Bool
+    let center: CGPoint            // scroll starts here (the biggest bubbles), not at the top-left corner
+    @ViewBuilder let content: () -> C
+    var body: some View {
+        if scrollable {
+            ScrollViewReader { proxy in
+                ScrollView([.horizontal, .vertical]) {
+                    ZStack(alignment: .topLeading) {
+                        content()
+                        Color.clear.frame(width: 1, height: 1).offset(x: center.x, y: center.y).id("center")
+                    }
+                }.onAppear { proxy.scrollTo("center", anchor: .center) }
+            }
+        }
+        else { content().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).clipped() }
     }
 }
