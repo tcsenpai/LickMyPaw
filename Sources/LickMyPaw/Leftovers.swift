@@ -112,6 +112,20 @@ enum Uninstaller {
     nonisolated(unsafe) static var launchctl: Launchctl = SystemLaunchctl()
     nonisolated(unsafe) static var terminator: AppTerminator = SystemAppTerminator()
 
+    struct AppResult { let app: AppInfo; let items: [ItemResult]
+        var ok: Bool { !items.isEmpty && items.allSatisfy(\.ok) }
+        var error: String? { items.first { !$0.ok }?.error }
+    }
+    /// Sequential batch; a failure (refused, won't quit, trash error) never aborts the others. `progress(i, total)` fires before app i (1-based).
+    static func uninstallMany(apps: [AppInfo], leftoversFor: (AppInfo) -> [Leftover], quit: Bool = true, progress: (@Sendable (Int, Int) -> Void)? = nil) async -> [AppResult] {
+        var out: [AppResult] = []
+        for (i, a) in apps.enumerated() {
+            progress?(i + 1, apps.count)
+            out.append(AppResult(app: a, items: await uninstall(a, leftoversFor(a), quit: quit)))
+        }
+        return out
+    }
+
     /// Quits the app if running (when `quit`), boots out LaunchAgent leftovers, then trashes the bundle and the given leftovers. Never removes files directly.
     static func uninstall(_ app: AppInfo, _ leftovers: [Leftover], quit: Bool = true) async -> [ItemResult] {
         if app.isSystem { return [ItemResult(path: app.path, ok: false, error: "Refused: system app")] }
