@@ -51,6 +51,7 @@ struct CleanupView: View {
                 if !m.failures.isEmpty { Text(TTF("%d items could not be cleaned", "Cleanup", m.failures.count)).foregroundStyle(.white.opacity(0.7)) }
                 if m.undone { Text(C("Restored")).foregroundStyle(.white.opacity(0.8)) }
                 else if !m.batch.isEmpty { Button(C("Undo")) { m.undo() }.buttonStyle(PinkButton()) }
+                Button(C("Back to results")) { withAnimation(spring) { m.phase = .ready } }.buttonStyle(SoftButton())
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
