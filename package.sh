@@ -14,4 +14,5 @@ rm -rf dist/dmg-stage
 # ditto keeps the bundle structure, symlinks and the ad-hoc signature intact (plain `zip` may not)
 ditto -c -k --keepParent LickMyPaw.app "dist/LickMyPaw-$VER-macos-$ARCH.zip"
 (cd dist && shasum -a 256 *.dmg *.zip > SHA256SUMS.txt)
+./smoke.sh "dist/LickMyPaw-$VER-macos-$ARCH.zip"
 ls -lh dist

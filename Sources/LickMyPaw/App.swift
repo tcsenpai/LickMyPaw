@@ -498,7 +498,7 @@ struct ContentView: View {
         if CLI.runIfRequested() { exit(0) }
         if CommandLine.arguments.contains("--i18n-check") {   // headless: same keys resolved through each language bundle
             for l in ["en", "it", "fr", "es"] {
-                let b = Bundle(path: Bundle.module.path(forResource: l, ofType: "lproj")!)!
+                let b = Bundle(path: L10n.resourceBundle.path(forResource: l, ofType: "lproj")!)!
                 let g = { (k: String) in NSLocalizedString(k, bundle: b, comment: "") }
                 print(l, "|", g("Start Over"), "|", g("Review and Remove"), "|", g("Other items"), "|", String(format: g("%d small files"), 3))
             }

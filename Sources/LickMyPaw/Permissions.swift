@@ -172,7 +172,7 @@ enum PermissionsSelfTest {
 
         var sets: [String: Set<String>] = [:]
         for l in ["en", "it", "fr", "es"] {
-            guard let p = Bundle.module.path(forResource: "Permissions", ofType: "strings", inDirectory: nil, forLocalization: l),
+            guard let p = L10n.resourceBundle.path(forResource: "Permissions", ofType: "strings", inDirectory: nil, forLocalization: l),
                   let dict = NSDictionary(contentsOfFile: p) as? [String: String] else { t.check(false, "load \(l) Permissions.strings"); continue }
             sets[l] = Set(dict.keys); t.reachedCode()
         }
