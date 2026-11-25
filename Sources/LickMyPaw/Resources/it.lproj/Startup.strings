@@ -1,0 +1,17 @@
+"User agents" = "Agent utente";
+"System agents" = "Agent di sistema";
+"System daemons" = "Daemon di sistema";
+"Broken" = "Non funzionanti";
+"Rescan" = "Riscansiona";
+"No launch items found" = "Nessun elemento di avvio trovato";
+"Saved results from %@ (%@) — press Rescan to refresh" = "Risultati salvati alle %@ (%@) — premi Riscansiona per aggiornare";
+"Updated after recent actions — Rescan to be sure" = "Aggiornato dopo azioni recenti — Riscansiona per sicurezza";
+"Running" = "In esecuzione";
+"Loaded" = "Caricato";
+"Disabled" = "Disattivato";
+"Admin needed" = "Servono i privilegi di amministratore";
+"Not loaded" = "Non caricato";
+"Show in Finder" = "Mostra nel Finder";
+"Move to Trash" = "Sposta nel Cestino";
+"Only your own agents can be changed" = "Solo i tuoi agent possono essere modificati";
+"Only broken user agents can be moved to Trash" = "Solo gli agent utente non funzionanti possono essere spostati nel Cestino";
