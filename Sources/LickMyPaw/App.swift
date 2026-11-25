@@ -196,7 +196,8 @@ struct ContentView: View {
         }
         .preferredColorScheme(.dark)
         .frame(minWidth: 980, minHeight: 620)
-        .onAppear { let a = CommandLine.arguments; if let i = a.firstIndex(of: "--open"), i + 1 < a.count { m.scan(a[i + 1]) } }
+        .onAppear { let a = CommandLine.arguments; if let i = a.firstIndex(of: "--open"), i + 1 < a.count { m.scan(a[i + 1]) }
+            if let i = a.firstIndex(of: "--page"), i + 1 < a.count { switch a[i + 1] { case "cleanup": m.page = .cleanup; case "apps": m.page = .apps; case "settings": m.page = .settings; case "prowl": m.page = .prowl; default: break } } }
         .alert(T("Error"), isPresented: Binding(get: { m.error != nil }, set: { if !$0 { m.error = nil } })) {
             Button("OK") { m.error = nil }
         } message: { Text(m.error ?? "") }
@@ -472,6 +473,22 @@ struct ContentView: View {
             exit(0)
         }
         if let i = CommandLine.arguments.firstIndex(of: "--selftest") { let only = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : nil; Task { @MainActor in await SelfTests.main(only: only) }; dispatchMain() }
+        let pa = CommandLine.arguments   // headless page render: LickMyPaw --render-page cleanup|apps|settings|guide <out.png>
+        if let i = pa.firstIndex(of: "--render-page"), i + 2 < pa.count {
+            MainActor.assumeIsolated {
+                let inner: AnyView
+                switch pa[i + 1] {
+                case "cleanup": inner = AnyView(CleanupView())
+                case "apps": inner = AnyView(AppsView())
+                case "settings": inner = AnyView(SettingsView())
+                default: inner = AnyView(FDAGuideView(onNotNow: {}, onClose: {}))
+                }
+                let v = ZStack { Background(); inner }.frame(width: 900, height: 600).preferredColorScheme(.dark)
+                let r = ImageRenderer(content: v); r.scale = 1
+                guard let img = r.nsImage, let tiff = img.tiffRepresentation, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) else { print("render failed"); exit(1) }
+                try? png.write(to: URL(fileURLWithPath: pa[i + 2])); print("rendered \(pa[i + 1]) -> \(pa[i + 2])"); exit(0)
+            }
+        }
         let a = CommandLine.arguments   // headless GUI check: LickMyPaw --render <path> <out.png>
         if let i = a.firstIndex(of: "--render"), i + 2 < a.count {
             MainActor.assumeIsolated {
