@@ -3,13 +3,13 @@
 **An open-source, native macOS alternative to CleanMyMac.**
 Fast, private, no telemetry, no subscription. Built with Swift and SwiftUI.
 
-> Status: early MVP. One tool is ready (Space Lens-style disk map); the rest of the suite is on the roadmap.
+> Status: early MVP. One tool is ready (**Prowl**, the disk map); the rest of the suite is on the roadmap.
 > LickMyPaw is an independent project and is not affiliated with or endorsed by MacPaw.
 
 ## Features
 
 - **Home** — disk gauge and a launcher for every tool.
-- **Disk map** — scans a folder or the whole disk and shows what takes space as an interactive bubble map, with a sortable list beside it. Drill down, go back/forward, select items and move them to the Trash (always recoverable, always asks first).
+- **Prowl (disk map)** — scans a folder or the whole disk and shows what takes space as an interactive bubble map, with a sortable list beside it. Drill down, go back/forward, select items and move them to the Trash (always recoverable, always asks first).
 - **Fast scanner** — `getattrlistbulk`-based, parallel, allocated-size accurate (matches `du`), does not cross mount points. ~660k files in about 4.5 s on Apple Silicon.
 - **Agent-friendly CLI** — same binary, JSON output, plus a ready-to-use skill for AI coding agents.
 - **Localized** — English, Italian, French, Spanish (follows macOS language).
@@ -49,8 +49,8 @@ An agent skill lives in [`skill/SKILL.md`](skill/SKILL.md). Link it into `~/.cla
 
 | Module | Status |
 |---|---|
-| Disk map (bubbles) | MVP |
-| Smart Care (one-click overview) | planned |
+| Prowl — disk map (bubbles) | MVP |
+| Purr (one-click overview) | planned |
 | Cleanup (caches, logs, leftovers) | planned |
 | Protection (malware / privacy) | planned |
 | Performance (login items, processes, maintenance) | planned |

@@ -4,7 +4,7 @@ set -e
 cd "$(dirname "$0")"
 swift build -c release
 APP=LickMyPaw.app
-rm -rf $APP SpaceLens.app && mkdir -p $APP/Contents/MacOS $APP/Contents/Resources
+rm -rf $APP && mkdir -p $APP/Contents/MacOS $APP/Contents/Resources
 cp .build/release/LickMyPaw $APP/Contents/MacOS/
 cp -R .build/release/LickMyPaw_LickMyPaw.bundle $APP/Contents/Resources/
 cp assets/AppIcon.icns $APP/Contents/Resources/

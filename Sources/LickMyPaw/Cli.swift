@@ -1,6 +1,6 @@
 import Foundation
 
-/// Agent-facing CLI, same binary as the GUI:  SpaceLens <scan|big|trash|help> ...  (JSON on stdout, errors on stderr)
+/// Agent-facing CLI, same binary as the GUI:  LickMyPaw <scan|big|trash|help> ...  (JSON on stdout, errors on stderr)
 enum CLI {
     static let usage = """
     lickmypaw — disk space analyzer (CLI for agents). Output is JSON on stdout.

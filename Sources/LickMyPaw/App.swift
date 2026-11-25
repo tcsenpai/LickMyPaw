@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum Page { case home, spaceLens }
+enum Page { case home, prowl }
 
 let spring = Animation.spring(response: 0.45, dampingFraction: 0.86)
 
@@ -183,7 +183,7 @@ struct ContentView: View {
                 sidebar
                 ZStack {
                     if m.page == .home { home.transition(.opacity.combined(with: .scale(scale: 0.985))) }
-                    else { spaceLensPage.transition(.opacity.combined(with: .scale(scale: 0.985))) }
+                    else { prowlPage.transition(.opacity.combined(with: .scale(scale: 0.985))) }
                 }.frame(maxWidth: .infinity, maxHeight: .infinity).animation(spring, value: m.page)
             }
         }
@@ -198,7 +198,7 @@ struct ContentView: View {
 
     // MARK: navigation
 
-    var spaceLensPage: some View {
+    var prowlPage: some View {
         ZStack {
             if let cur = m.current { browser(cur).transition(.opacity) }
             else if m.scanning { scanningView.transition(.opacity) }
@@ -209,14 +209,14 @@ struct ContentView: View {
     var sidebar: some View {
         VStack(spacing: 10) {
             navItem("house.fill", "Home", page: .home)
-            navItem("circle.hexagongrid.fill", "Space Lens", page: .spaceLens)
+            navItem("circle.hexagongrid.fill", "Prowl", page: .prowl)
             Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1).padding(.vertical, 4)
             ForEach(Self.future, id: \.1) { navItem($0.0, $0.1, page: nil) }
             Spacer()
         }.padding(.top, 52).frame(width: 74).background(Color.black.opacity(0.18)).ignoresSafeArea()
     }
 
-    static let future = [("sparkles", "Smart Care"), ("trash.fill", "Cleanup"), ("shield.lefthalf.filled", "Protection"),
+    static let future = [("sparkles", "Purr"), ("trash.fill", "Cleanup"), ("shield.lefthalf.filled", "Protection"),
                          ("bolt.fill", "Performance"), ("square.grid.2x2.fill", "Applications")]
 
     func navItem(_ icon: String, _ title: String, page: Page?) -> some View {
@@ -232,7 +232,7 @@ struct ContentView: View {
 
     // MARK: home
 
-    func quickScan(_ path: String) { m.page = .spaceLens; m.scan(path) }
+    func quickScan(_ path: String) { m.page = .prowl; m.scan(path) }
 
     var home: some View {
         let v = diskInfo()
@@ -258,8 +258,8 @@ struct ContentView: View {
                 }.padding(24).glass(28)
                 Text(T("Tools")).font(.system(size: 18, weight: .semibold, design: .rounded)).padding(.top, 4)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 16)], spacing: 16) {
-                    ModuleCard(icon: "circle.hexagongrid.fill", title: "Space Lens", text: T("Visual map of your storage: find and remove what weighs the most."), active: true) { m.page = .spaceLens }
-                    ModuleCard(icon: "sparkles", title: "Smart Care", text: T("Quick check of cleanup, protection and performance."), active: false) {}
+                    ModuleCard(icon: "circle.hexagongrid.fill", title: "Prowl", text: T("Visual map of your storage: find and remove what weighs the most."), active: true) { m.page = .prowl }
+                    ModuleCard(icon: "sparkles", title: "Purr", text: T("Quick check of cleanup, protection and performance."), active: false) {}
                     ModuleCard(icon: "trash.fill", title: T("Cleanup"), text: T("Useless caches, logs and system files."), active: false) {}
                     ModuleCard(icon: "shield.lefthalf.filled", title: T("Protection"), text: T("Scan for malware and privacy threats."), active: false) {}
                     ModuleCard(icon: "bolt.fill", title: T("Performance"), text: T("Processes, login items, maintenance."), active: false) {}
@@ -281,7 +281,7 @@ struct ContentView: View {
         VStack(spacing: 18) {
             Image(systemName: "circle.hexagongrid.fill").font(.system(size: 46)).foregroundStyle(.white).frame(width: 96, height: 96)
                 .background(LinearGradient(colors: [Color(hex: 0xFF3FA4), Color(hex: 0x7a3df0)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
-            Text("Space Lens").font(.system(size: 34, weight: .bold, design: .rounded)).foregroundStyle(.white)
+            Text("Prowl").font(.system(size: 34, weight: .bold, design: .rounded)).foregroundStyle(.white)
             Text(T("Find out what's taking up space on your disk")).foregroundStyle(.white.opacity(0.7))
             HStack(spacing: 12) {
                 Button(T("Home folder")) { m.scan(NSHomeDirectory()) }.buttonStyle(PinkButton())
@@ -306,7 +306,7 @@ struct ContentView: View {
     func browser(_ cur: Node) -> some View {
         VStack(spacing: 10) {
             ZStack {
-                Text("Space Lens").font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(.white.opacity(0.9))
+                Text("Prowl").font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(.white.opacity(0.9))
                 HStack {
                     Button { m.reset() } label: { Label(T("Start Over"), systemImage: "chevron.left").font(.system(size: 14, weight: .semibold, design: .rounded)) }
                         .buttonStyle(.plain).foregroundStyle(.white).padding(.leading, 16)
@@ -449,7 +449,7 @@ struct ContentView: View {
     }
 }
 
-@main struct SpaceLensApp: App {
+@main struct LickMyPawApp: App {
     init() {
         if CLI.runIfRequested() { exit(0) }
         if CommandLine.arguments.contains("--i18n-check") {   // headless: same keys resolved through each language bundle
@@ -461,7 +461,7 @@ struct ContentView: View {
             exit(0)
         }
         if CommandLine.arguments.contains("--selftest") { Task { @MainActor in await selfTest() }; dispatchMain() }
-        let a = CommandLine.arguments   // headless GUI check: SpaceLens --render <path> <out.png>
+        let a = CommandLine.arguments   // headless GUI check: LickMyPaw --render <path> <out.png>
         if let i = a.firstIndex(of: "--render"), i + 2 < a.count {
             MainActor.assumeIsolated {
                 let root = Scanner.scan(path: a[i + 1], progress: Progress())
