@@ -120,9 +120,10 @@ struct SystemLaunchAgentControl: LaunchAgentControl {
 
     init(control: LaunchAgentControl = SystemLaunchAgentControl(), roots: StartupRoots? = nil) {
         self.control = control; self.roots = roots
-        token = NotificationCenter.default.addObserver(forName: Engine.didChange, object: nil, queue: .main) { [weak self] n in
+        // queue: nil + hop to the main actor. `queue: .main` DEADLOCKS when Engine.trash posts from the main thread (e.g. trashing a broken plist from the UI).
+        token = NotificationCenter.default.addObserver(forName: Engine.didChange, object: nil, queue: nil) { [weak self] n in
             let op = n.userInfo?["op"] as? String ?? "", paths = n.userInfo?["paths"] as? [String] ?? []
-            MainActor.assumeIsolated { self?.handleEngineChange(op: op, paths: paths) }
+            Task { @MainActor in self?.handleEngineChange(op: op, paths: paths) }
         }
     }
     deinit { if let token { NotificationCenter.default.removeObserver(token) } }
