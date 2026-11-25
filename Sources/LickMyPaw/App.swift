@@ -268,7 +268,7 @@ struct ContentView: View {
                 .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white.opacity(on ? 0.22 : 0)))
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(on ? 0.25 : 0)))
                 .animation(spring, value: on)
-        }.buttonStyle(.plain).help(page == nil ? TF("%@ — coming soon", T(title)) : T(title))
+        }.buttonStyle(.plain).help(page == nil ? TF("%@: coming soon", T(title)) : T(title))
     }
 
     // MARK: home

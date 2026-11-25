@@ -45,10 +45,10 @@ struct StartupView: View {
         if let t = m.savedAt {
             TimelineView(.periodic(from: .now, by: 30)) { _ in
                 let f = DateFormatter(); let _ = f.timeStyle = .short
-                let ago = RelativeDateTimeFormatter().localizedString(for: t, relativeTo: Date())
+                let ago = makeRelativeFormatter().localizedString(for: t, relativeTo: Date())
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(TTF("Saved results from %@ (%@) — press Rescan to refresh", S, f.string(from: t), ago)).font(.caption).opacity(0.65)
-                    if m.stale { Text(TT("Updated after recent actions — Rescan to be sure", S)).font(.caption).foregroundStyle(.yellow) }
+                    Text(TTF("Saved results from %@ (%@): press Rescan to refresh", S, f.string(from: t), ago)).font(.caption).opacity(0.65)
+                    if m.stale { Text(TT("Updated after recent actions: Rescan to be sure", S)).font(.caption).foregroundStyle(.yellow) }
                 }
             }
         }

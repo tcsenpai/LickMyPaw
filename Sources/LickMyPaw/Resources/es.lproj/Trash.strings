@@ -1,7 +1,7 @@
 "Trash" = "Papelera";
 "%@ in Trash" = "%@ en la Papelera";
 "Trash is empty" = "La Papelera está vacía";
-"Size unavailable — grant Full Disk Access to see it" = "Tamaño no disponible: concede Acceso total al disco para verlo";
+"Size unavailable: grant Full Disk Access to see it" = "Tamaño no disponible: concede Acceso total al disco para verlo";
 "Show Trash" = "Mostrar Papelera";
 "Empty Trash…" = "Vaciar Papelera…";
 "Permanently delete everything in the Trash? This cannot be undone." = "¿Eliminar definitivamente todo el contenido de la Papelera? No se puede deshacer.";

@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 /// The macOS Trash, always one click away: size, show in Finder, empty (permanent, so it asks first).
-/// Everything LickMyPaw removes goes to the Trash (undoable) — space is only really freed once it is emptied.
+/// Everything LickMyPaw removes goes to the Trash (undoable): space is only really freed once it is emptied.
 enum TrashBin {
     static var path: String { Env.trashDir }
     /// Empties the Trash. Injectable for tests. Default: ask Finder (handles per-volume trashes, needs the Automation permission once).
@@ -88,7 +88,7 @@ struct TrashButton: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(TT("Trash", "Trash")).font(.system(size: 16, weight: .bold, design: .rounded))
             if let s = m.size { Text(s > 0 ? TTF("%@ in Trash", "Trash", fmt(s)) : TT("Trash is empty", "Trash")).opacity(0.8) }
-            else if m.loaded { Text(TT("Size unavailable — grant Full Disk Access to see it", "Trash")).font(.caption).opacity(0.7) }
+            else if m.loaded { Text(TT("Size unavailable: grant Full Disk Access to see it", "Trash")).font(.caption).opacity(0.7) }
             if let msg = m.message { Text(msg).font(.caption).foregroundStyle(Color(hex: 0xFF8FC8)).fixedSize(horizontal: false, vertical: true) }
             if confirm {
                 Text(TT("Permanently delete everything in the Trash? This cannot be undone.", "Trash")).font(.callout).fixedSize(horizontal: false, vertical: true)

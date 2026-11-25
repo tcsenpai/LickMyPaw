@@ -29,7 +29,7 @@ struct CleanupView: View {
         if let n = m.savedNote {
             VStack(alignment: .leading, spacing: 2) {
                 Text(n)
-                if m.stale { Text(C("Updated after recent actions — Rescan to be sure")) }
+                if m.stale { Text(C("Updated after recent actions: Rescan to be sure")) }
             }.font(.caption).foregroundStyle(.white.opacity(0.6)).frame(maxWidth: .infinity, alignment: .leading)
         }
     }

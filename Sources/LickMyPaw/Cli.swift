@@ -3,7 +3,7 @@ import Foundation
 /// Agent-facing CLI, same binary as the GUI:  LickMyPaw <scan|big|trash|help> ...  (JSON on stdout, errors on stderr)
 enum CLI {
     static let usage = """
-    lickmypaw — disk space analyzer (CLI for agents). Output is JSON on stdout.
+    lickmypaw: disk space analyzer (CLI for agents). Output is JSON on stdout.
       lickmypaw scan <path> [--depth 2] [--top 15] [--min 10M]   size tree, children sorted desc
       lickmypaw big  <path> [--files|--dirs] [--limit 30] [--min 100M]   flat ranking of largest items
       lickmypaw trash <path>... [--yes]                          move to Trash (dry-run without --yes)

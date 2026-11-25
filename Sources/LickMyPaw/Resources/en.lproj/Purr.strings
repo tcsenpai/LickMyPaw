@@ -5,8 +5,8 @@
 "Checking permissions…" = "Checking permissions…";
 "Your Mac looks good" = "Your Mac looks good";
 "%d things need attention" = "%d things need attention";
-"Scanned at %@ (%@) — press Run again to refresh" = "Scanned at %@ (%@) — press Run again to refresh";
-"Updated after recent actions — run again" = "Updated after recent actions — run again";
+"Scanned at %@ (%@): press Run again to refresh" = "Scanned at %@ (%@): press Run again to refresh";
+"Updated after recent actions: run again" = "Updated after recent actions: run again";
 "One click to check your whole Mac" = "One click to check your whole Mac";
 "Run Smart Scan" = "Run Smart Scan";
 "Run again" = "Run again";

@@ -4,8 +4,8 @@
 "Broken" = "Défectueux";
 "Rescan" = "Réanalyser";
 "No launch items found" = "Aucun élément de démarrage trouvé";
-"Saved results from %@ (%@) — press Rescan to refresh" = "Résultats enregistrés à %@ (%@) — appuyez sur Réanalyser pour actualiser";
-"Updated after recent actions — Rescan to be sure" = "Mis à jour après des actions récentes — Réanalysez pour être sûr";
+"Saved results from %@ (%@): press Rescan to refresh" = "Résultats enregistrés à %@ (%@): appuyez sur Réanalyser pour actualiser";
+"Updated after recent actions: Rescan to be sure" = "Mis à jour après des actions récentes: Réanalysez pour être sûr";
 "Running" = "En cours d'exécution";
 "Loaded" = "Chargé";
 "Disabled" = "Désactivé";

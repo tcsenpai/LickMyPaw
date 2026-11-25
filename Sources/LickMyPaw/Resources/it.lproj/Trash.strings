@@ -1,7 +1,7 @@
 "Trash" = "Cestino";
 "%@ in Trash" = "%@ nel Cestino";
 "Trash is empty" = "Il Cestino è vuoto";
-"Size unavailable — grant Full Disk Access to see it" = "Dimensione non disponibile: concedi l'Accesso completo al disco per vederla";
+"Size unavailable: grant Full Disk Access to see it" = "Dimensione non disponibile: concedi l'Accesso completo al disco per vederla";
 "Show Trash" = "Mostra Cestino";
 "Empty Trash…" = "Svuota Cestino…";
 "Permanently delete everything in the Trash? This cannot be undone." = "Eliminare definitivamente tutto il contenuto del Cestino? L'operazione non si può annullare.";

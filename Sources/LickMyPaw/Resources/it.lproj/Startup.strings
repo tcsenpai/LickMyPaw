@@ -4,8 +4,8 @@
 "Broken" = "Non funzionanti";
 "Rescan" = "Riscansiona";
 "No launch items found" = "Nessun elemento di avvio trovato";
-"Saved results from %@ (%@) — press Rescan to refresh" = "Risultati salvati alle %@ (%@) — premi Riscansiona per aggiornare";
-"Updated after recent actions — Rescan to be sure" = "Aggiornato dopo azioni recenti — Riscansiona per sicurezza";
+"Saved results from %@ (%@): press Rescan to refresh" = "Risultati salvati alle %@ (%@): premi Riscansiona per aggiornare";
+"Updated after recent actions: Rescan to be sure" = "Aggiornato dopo azioni recenti: Riscansiona per sicurezza";
 "Running" = "In esecuzione";
 "Loaded" = "Caricato";
 "Disabled" = "Disattivato";

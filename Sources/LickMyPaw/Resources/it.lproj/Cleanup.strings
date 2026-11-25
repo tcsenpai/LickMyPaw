@@ -32,6 +32,6 @@
 "%d min ago" = "%d min fa";
 "%d h ago" = "%d h fa";
 "%d d ago" = "%d g fa";
-"Saved results from %@ (%@) — press Rescan to refresh" = "Risultati salvati alle %@ (%@) — premi Rianalizza per aggiornare";
-"Updated after recent actions — Rescan to be sure" = "Aggiornato dopo le azioni recenti — Rianalizza per sicurezza";
+"Saved results from %@ (%@): press Rescan to refresh" = "Risultati salvati alle %@ (%@): premi Rianalizza per aggiornare";
+"Updated after recent actions: Rescan to be sure" = "Aggiornato dopo le azioni recenti: Rianalizza per sicurezza";
 "Back to results" = "Torna ai risultati";

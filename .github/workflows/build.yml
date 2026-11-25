@@ -55,4 +55,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" \
             --title "LickMyPaw ${GITHUB_REF_NAME#v}" --generate-notes \
-            --notes "**Unsigned build.** Not signed with an Apple Developer ID and not notarized — see the README for how to open it (right-click → Open, or remove the quarantine flag). Apple Silicon only."
+            --notes "**Unsigned build.** Not signed with an Apple Developer ID and not notarized. See the README for how to open it (right-click → Open, or remove the quarantine flag). Apple Silicon only."

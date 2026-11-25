@@ -34,7 +34,7 @@
 "Press Scan to look through the chosen folder. Nothing is scanned automatically." = "Pulsa Analizar para examinar la carpeta elegida. Nada se analiza automáticamente.";
 "Rescan" = "Reanalizar";
 "Restored" = "Restaurado";
-"Saved results from %@ (%@) — press Rescan to refresh" = "Resultados guardados de las %@ (%@) — pulsa Reanalizar para actualizar";
+"Saved results from %@ (%@): press Rescan to refresh" = "Resultados guardados de las %@ (%@): pulsa Reanalizar para actualizar";
 "Scan" = "Analizar";
 "Scanning… %d files, %@" = "Analizando… %d archivos, %@";
 "Search again" = "Buscar de nuevo";
@@ -42,5 +42,5 @@
 "Size" = "Tamaño";
 "Total" = "Total";
 "Undo" = "Deshacer";
-"Updated after recent actions — Rescan to be sure" = "Actualizado tras acciones recientes — Reanaliza para estar seguro";
+"Updated after recent actions: Rescan to be sure" = "Actualizado tras acciones recientes: Reanaliza para estar seguro";
 "…and %d more" = "…y %d más";

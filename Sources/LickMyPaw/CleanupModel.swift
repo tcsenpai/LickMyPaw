@@ -92,7 +92,7 @@ struct CleanGroup: Identifiable {
     var savedNote: String? {
         guard let t = scannedAt else { return nil }
         let df = DateFormatter(); df.dateStyle = .none; df.timeStyle = .short
-        return TTF("Saved results from %@ (%@) — press Rescan to refresh", "Cleanup", df.string(from: t), Self.relative(t, now: now))
+        return TTF("Saved results from %@ (%@): press Rescan to refresh", "Cleanup", df.string(from: t), Self.relative(t, now: now))
     }
 
     /// Trash each selected item (Safety automatic mode, logged, undoable). Returns (entries, failures).

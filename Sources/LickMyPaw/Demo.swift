@@ -143,3 +143,11 @@ enum Demo {
         exit(0)
     }
 }
+
+
+/// RelativeDateTimeFormatter that stays in English while rendering screenshots (the system locale is not overridable from the command line).
+func makeRelativeFormatter() -> RelativeDateTimeFormatter {
+    let f = RelativeDateTimeFormatter()
+    if Demo.enabled { f.locale = Locale(identifier: "en_US") }
+    return f
+}

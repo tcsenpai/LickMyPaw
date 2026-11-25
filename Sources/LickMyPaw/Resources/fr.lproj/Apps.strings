@@ -25,8 +25,8 @@
 "Moving to Trash…" = "Déplacement vers la Corbeille…";
 "Cancel" = "Annuler";
 "Rescan" = "Réanalyser";
-"Saved results from %@ (%@) — press Rescan to refresh" = "Résultats enregistrés à %@ (%@) — appuyez sur Réanalyser pour actualiser";
-"Updated after recent actions — Rescan to be sure" = "Mis à jour après des actions récentes — Réanalysez pour être sûr";
+"Saved results from %@ (%@): press Rescan to refresh" = "Résultats enregistrés à %@ (%@): appuyez sur Réanalyser pour actualiser";
+"Updated after recent actions: Rescan to be sure" = "Mis à jour après des actions récentes: Réanalysez pour être sûr";
 "just now" = "à l’instant";
 "%d min ago" = "il y a %d min";
 "%d h ago" = "il y a %d h";

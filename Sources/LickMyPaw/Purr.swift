@@ -116,8 +116,8 @@ struct PurrView: View {
                 Text(r.attentionCount == 0 ? TT("Your Mac looks good", "Purr") : TTF("%d things need attention", "Purr", r.attentionCount))
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                 let df: DateFormatter = { let d = DateFormatter(); d.dateStyle = .none; d.timeStyle = .short; return d }()
-                Text(TTF("Scanned at %@ (%@) — press Run again to refresh", "Purr", df.string(from: r.at), ago(r.at))).font(.system(size: 12, design: .rounded)).opacity(0.7)
-                if m.stale { Text(TT("Updated after recent actions — run again", "Purr")).font(.system(size: 12, weight: .medium, design: .rounded)).foregroundStyle(Color(hex: 0xFFB84D)) }
+                Text(TTF("Scanned at %@ (%@): press Run again to refresh", "Purr", df.string(from: r.at), ago(r.at))).font(.system(size: 12, design: .rounded)).opacity(0.7)
+                if m.stale { Text(TT("Updated after recent actions: run again", "Purr")).font(.system(size: 12, weight: .medium, design: .rounded)).foregroundStyle(Color(hex: 0xFFB84D)) }
             } else if !m.running {
                 Text(TT("One click to check your whole Mac", "Purr")).font(.system(size: 20, weight: .semibold, design: .rounded))
             }

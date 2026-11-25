@@ -1,7 +1,7 @@
 "Trash" = "Corbeille";
 "%@ in Trash" = "%@ dans la Corbeille";
 "Trash is empty" = "La Corbeille est vide";
-"Size unavailable — grant Full Disk Access to see it" = "Taille indisponible : accordez l'accès complet au disque pour la voir";
+"Size unavailable: grant Full Disk Access to see it" = "Taille indisponible : accordez l'accès complet au disque pour la voir";
 "Show Trash" = "Afficher la Corbeille";
 "Empty Trash…" = "Vider la Corbeille…";
 "Permanently delete everything in the Trash? This cannot be undone." = "Supprimer définitivement tout le contenu de la Corbeille ? Cette action est irréversible.";

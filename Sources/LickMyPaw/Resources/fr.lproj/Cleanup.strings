@@ -32,6 +32,6 @@
 "%d min ago" = "il y a %d min";
 "%d h ago" = "il y a %d h";
 "%d d ago" = "il y a %d j";
-"Saved results from %@ (%@) — press Rescan to refresh" = "Résultats enregistrés à %@ (%@) — appuyez sur Réanalyser pour actualiser";
-"Updated after recent actions — Rescan to be sure" = "Mis à jour après les actions récentes — Réanalysez pour être sûr";
+"Saved results from %@ (%@): press Rescan to refresh" = "Résultats enregistrés à %@ (%@): appuyez sur Réanalyser pour actualiser";
+"Updated after recent actions: Rescan to be sure" = "Mis à jour après les actions récentes: Réanalysez pour être sûr";
 "Back to results" = "Retour aux résultats";

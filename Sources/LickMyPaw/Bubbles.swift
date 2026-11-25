@@ -7,7 +7,17 @@ extension Color {
     }
 }
 
-func fmt(_ b: Int64) -> String { ByteCountFormatter.string(fromByteCount: b, countStyle: .file) }
+func fmt(_ b: Int64) -> String {
+    if Demo.enabled { return demoFmt(b) }
+    return ByteCountFormatter.string(fromByteCount: b, countStyle: .file)
+}
+
+/// Screenshots only: en_US style sizes (decimal point) regardless of the machine locale.
+private func demoFmt(_ b: Int64) -> String {
+    let u = ["bytes", "KB", "MB", "GB", "TB"]; var v = Double(b), i = 0
+    while v >= 1000 && i < u.count - 1 { v /= 1000; i += 1 }
+    return i >= 3 ? String(format: "%.1f %@", v, u[i]) : String(format: "%.0f %@", v, u[i])
+}
 
 enum Icons {
     nonisolated(unsafe) static var cache: [String: NSImage] = [:]
@@ -131,7 +141,7 @@ struct BubbleView: View {
                     .contextMenu { if let n = b.node { Button(on ? T("Deselect") : T("Select")) { onToggle(n) } } }
                 }
                 if let h = hover, let b = bubbles.first(where: { $0.id == h }) {
-                    Text("\(b.label) — \(fmt(b.size))").font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(.white)
+                    Text("\(b.label): \(fmt(b.size))").font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(.white)
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(Capsule().fill(Color.black.opacity(0.7))).overlay(Capsule().strokeBorder(Color.white.opacity(0.2)))
                         .fixedSize().position(x: min(max(b.center.x, 90), lay.content.width - 90), y: max(b.center.y - b.r - 14, 14))

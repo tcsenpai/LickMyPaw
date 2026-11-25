@@ -5,7 +5,7 @@ private func C(_ k: String) -> String { TT(k, "Clutter") }
 
 private let dateFmt: DateFormatter = { let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .none; return f }()
 private let timeFmt: DateFormatter = { let f = DateFormatter(); f.dateStyle = .none; f.timeStyle = .short; return f }()
-private let relFmt = RelativeDateTimeFormatter()
+private let relFmt = makeRelativeFormatter()
 
 private func reveal(_ p: String) { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: p)]) }
 private func icon(_ f: CFile) -> NSImage { Icons.icon(Node(name: f.name, path: f.path, isDir: false)) }
@@ -60,9 +60,9 @@ struct ClutterView: View {
     private var note: some View {
         VStack(spacing: 4) {
             if let at = m.scannedAt {
-                Text(TTF("Saved results from %@ (%@) — press Rescan to refresh", "Clutter", timeFmt.string(from: at), relFmt.localizedString(for: at, relativeTo: Date())))
+                Text(TTF("Saved results from %@ (%@): press Rescan to refresh", "Clutter", timeFmt.string(from: at), relFmt.localizedString(for: at, relativeTo: Date())))
             }
-            if m.stale { Text(C("Updated after recent actions — Rescan to be sure")).foregroundStyle(Color(hex: 0xFFB3E1)) }
+            if m.stale { Text(C("Updated after recent actions: Rescan to be sure")).foregroundStyle(Color(hex: 0xFFB3E1)) }
         }.font(.caption).foregroundStyle(.white.opacity(0.6)).frame(maxWidth: .infinity, alignment: .leading)
     }
 

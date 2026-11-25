@@ -1,7 +1,7 @@
 "Trash" = "Trash";
 "%@ in Trash" = "%@ in Trash";
 "Trash is empty" = "Trash is empty";
-"Size unavailable — grant Full Disk Access to see it" = "Size unavailable — grant Full Disk Access to see it";
+"Size unavailable: grant Full Disk Access to see it" = "Size unavailable: grant Full Disk Access to see it";
 "Show Trash" = "Show Trash";
 "Empty Trash…" = "Empty Trash…";
 "Permanently delete everything in the Trash? This cannot be undone." = "Permanently delete everything in the Trash? This cannot be undone.";

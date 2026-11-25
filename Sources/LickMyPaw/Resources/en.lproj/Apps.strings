@@ -25,8 +25,8 @@
 "Moving to Trash…" = "Moving to Trash…";
 "Cancel" = "Cancel";
 "Rescan" = "Rescan";
-"Saved results from %@ (%@) — press Rescan to refresh" = "Saved results from %@ (%@) — press Rescan to refresh";
-"Updated after recent actions — Rescan to be sure" = "Updated after recent actions — Rescan to be sure";
+"Saved results from %@ (%@): press Rescan to refresh" = "Saved results from %@ (%@): press Rescan to refresh";
+"Updated after recent actions: Rescan to be sure" = "Updated after recent actions: Rescan to be sure";
 "just now" = "just now";
 "%d min ago" = "%d min ago";
 "%d h ago" = "%d h ago";

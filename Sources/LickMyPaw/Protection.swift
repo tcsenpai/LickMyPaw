@@ -178,7 +178,7 @@ struct ProtectionView: View {
                         Button { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: f.path)]) } label: { Image(systemName: "folder") }.buttonStyle(SoftButton()).help(TT("Show in Finder", S))
                     }
                 }
-                Text(TTF("Saved results from %@ (%@) — press Rescan to refresh", S, DateFormatter.localizedString(from: t, dateStyle: .none, timeStyle: .short), RelativeDateTimeFormatter().localizedString(for: t, relativeTo: Date()))).font(.caption2).opacity(0.5)
+                Text(TTF("Saved results from %@ (%@): press Rescan to refresh", S, DateFormatter.localizedString(from: t, dateStyle: .none, timeStyle: .short), makeRelativeFormatter().localizedString(for: t, relativeTo: Date()))).font(.caption2).opacity(0.5)
             }
         }.padding(14).glass(16)
     }
@@ -249,7 +249,7 @@ struct ProtectionView: View {
                     Spacer()
                     if !m.detections.isEmpty { Button(TT("Move selected to Trash", S)) { confirm = true }.buttonStyle(PinkButton()).disabled(m.selected.isEmpty) }
                 }
-                if !m.detections.isEmpty { Text(TT("Signature matches can be false positives — review before removing", S)).font(.caption).foregroundStyle(.yellow) }
+                if !m.detections.isEmpty { Text(TT("Signature matches can be false positives: review before removing", S)).font(.caption).foregroundStyle(.yellow) }
                 ForEach(m.detections) { d in
                     HStack(spacing: 10) {
                         Toggle("", isOn: Binding(get: { m.selected.contains(d.path) }, set: { on in if on { m.selected.insert(d.path) } else { m.selected.remove(d.path) } })).labelsHidden()
@@ -264,8 +264,8 @@ struct ProtectionView: View {
                     }.padding(8).glass(12)
                 }
                 if let r = m.lastReport, !r.errors.isEmpty { Text(TTF("%d file(s) could not be read (permissions)", S, r.errors.count)).font(.caption).opacity(0.6) }
-                Text(TTF("Saved results from %@ (%@) — press Rescan to refresh", S, DateFormatter.localizedString(from: t, dateStyle: .none, timeStyle: .short), RelativeDateTimeFormatter().localizedString(for: t, relativeTo: Date()))).font(.caption2).opacity(0.5)
-                if m.stale { Text(TT("Updated after recent actions — Rescan to be sure", S)).font(.caption).foregroundStyle(.yellow) }
+                Text(TTF("Saved results from %@ (%@): press Rescan to refresh", S, DateFormatter.localizedString(from: t, dateStyle: .none, timeStyle: .short), makeRelativeFormatter().localizedString(for: t, relativeTo: Date()))).font(.caption2).opacity(0.5)
+                if m.stale { Text(TT("Updated after recent actions: Rescan to be sure", S)).font(.caption).foregroundStyle(.yellow) }
             }.padding(14).glass(16)
         }
     }
@@ -277,7 +277,7 @@ private struct InstallAutoView: View {
         VStack(alignment: .leading, spacing: 10) {
             if inst.confirming && !inst.running {
                 Text(TT("This will run, in order:", S)).font(.callout.weight(.semibold))
-                Text("1. brew install clamav\n2. " + TT("create freshclam.conf from the sample (enables it by commenting out the 'Example' line)", S) + "\n3. freshclam — " + TT("downloads the signatures: hundreds of MB, can take several minutes", S))
+                Text("1. brew install clamav\n2. " + TT("create freshclam.conf from the sample (enables it by commenting out the 'Example' line)", S) + "\n3. freshclam: " + TT("downloads the signatures: hundreds of MB, can take several minutes", S))
                     .font(.system(.caption, design: .monospaced)).opacity(0.85)
                 HStack {
                     Button(TT("Cancel", S)) { withAnimation(spring) { inst.confirming = false } }.buttonStyle(SoftButton())
@@ -324,7 +324,7 @@ private struct ConfirmSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(TTF("Move %d file(s) to Trash?", S, m.selected.count)).font(.headline)
-            Text(TT("Signature matches can be false positives — review before removing", S)).font(.callout).foregroundStyle(.yellow)
+            Text(TT("Signature matches can be false positives: review before removing", S)).font(.callout).foregroundStyle(.yellow)
             Text(TT("Files go to the Trash and can be restored from History.", S)).font(.callout).opacity(0.8)
             HStack {
                 Spacer()

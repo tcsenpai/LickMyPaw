@@ -205,8 +205,8 @@ struct AppsView: View {
             if let at = m.scannedAt {
                 TimelineView(.periodic(from: .now, by: 30)) { _ in
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(TTF("Saved results from %@ (%@) — press Rescan to refresh", T_, at.formatted(date: .omitted, time: .shortened), AppsModel.relativeTime(at)))
-                        if m.stale { Text(TT("Updated after recent actions — Rescan to be sure", T_)).foregroundStyle(Color(hex: 0xFF8FC8)) }
+                        Text(TTF("Saved results from %@ (%@): press Rescan to refresh", T_, at.formatted(date: .omitted, time: .shortened), AppsModel.relativeTime(at)))
+                        if m.stale { Text(TT("Updated after recent actions: Rescan to be sure", T_)).foregroundStyle(Color(hex: 0xFF8FC8)) }
                     }.font(.system(size: 11, design: .rounded)).opacity(0.8).frame(maxWidth: .infinity, alignment: .leading)
                 }
             }

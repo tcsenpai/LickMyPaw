@@ -1,6 +1,6 @@
 "%@ · %@ files · %@s" = "%@ · %@ fichiers · %@ s";
 "%@  |  %d items" = "%@  |  %d éléments";
-"%@ — coming soon" = "%@ — bientôt disponible";
+"%@: coming soon" = "%@: bientôt disponible";
 "%@ free" = "%@ disponibles";
 "%@ of %@ used" = "%@ utilisés sur %@";
 "%@ used of %@" = "%@ utilisés sur %@";
