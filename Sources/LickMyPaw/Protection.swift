@@ -28,6 +28,7 @@ enum ProtectInstall {
     @Published var updating = false
     @Published var updateLog: [String] = []
     @Published var lastReport: ScanReport?
+    let installer = ClamInstaller()
     var engine: ScanEngine
     var runner: CommandRunner
     var roots: StartupRoots?
@@ -40,6 +41,7 @@ enum ProtectInstall {
     init(engine: ScanEngine = ClamAVEngine(), runner: CommandRunner = SystemCommandRunner(), roots: StartupRoots? = nil,
          signer: @escaping @Sendable (String) -> SignState = PersistenceAudit.realSigner, exclusions: @escaping () -> [String] = { Prefs.exclusions }) {
         self.engine = engine; self.runner = runner; self.roots = roots; self.signer = signer; self.exclusions = exclusions
+        installer.onReady = { [weak self] in self?.refreshStatus() }
         // queue: nil + hop to the main actor: `queue: .main` deadlocks when Engine.trash posts from the main thread.
         token = NotificationCenter.default.addObserver(forName: Engine.didChange, object: nil, queue: nil) { [weak self] n in
             let op = n.userInfo?["op"] as? String ?? "", paths = n.userInfo?["paths"] as? [String] ?? []
@@ -194,7 +196,9 @@ struct ProtectionView: View {
                 HStack {
                     Button(TT("Copy commands", S)) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(ProtectInstall.commands, forType: .string) }.buttonStyle(SoftButton())
                     Button(TT("Check again", S)) { m.refreshStatus() }.buttonStyle(SoftButton())
+                    Button(TT("Install automatically", S)) { withAnimation(spring) { m.installer.confirming = true } }.buttonStyle(PinkButton()).disabled(m.installer.running)
                 }
+                InstallAutoView(inst: m.installer)
             case .noDatabase?:
                 Text(TT("ClamAV is installed but has no signature database yet.", S)).font(.callout).opacity(0.85)
                 updateUI
@@ -264,6 +268,53 @@ struct ProtectionView: View {
                 if m.stale { Text(TT("Updated after recent actions — Rescan to be sure", S)).font(.caption).foregroundStyle(.yellow) }
             }.padding(14).glass(16)
         }
+    }
+}
+
+private struct InstallAutoView: View {
+    @ObservedObject var inst: ClamInstaller
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if inst.confirming && !inst.running {
+                Text(TT("This will run, in order:", S)).font(.callout.weight(.semibold))
+                Text("1. brew install clamav\n2. " + TT("create freshclam.conf from the sample (enables it by commenting out the 'Example' line)", S) + "\n3. freshclam — " + TT("downloads the signatures: hundreds of MB, can take several minutes", S))
+                    .font(.system(.caption, design: .monospaced)).opacity(0.85)
+                HStack {
+                    Button(TT("Cancel", S)) { withAnimation(spring) { inst.confirming = false } }.buttonStyle(SoftButton())
+                    Button(TT("Install", S)) { Task { await inst.run() } }.buttonStyle(PinkButton())
+                }
+            }
+            if !inst.steps.isEmpty {
+                ForEach(inst.steps) { st in
+                    HStack(spacing: 8) {
+                        switch st.state {
+                        case .running: ProgressView().controlSize(.small).tint(.white).frame(width: 16, height: 16)
+                        case .ok: Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                        case .failed: Image(systemName: "xmark.circle.fill").foregroundStyle(.red)
+                        case .cancelled: Image(systemName: "stop.circle.fill").foregroundStyle(.orange)
+                        case .pending: Image(systemName: "circle").opacity(0.5)
+                        }
+                        Text(TT(st.name, S)).font(.callout)
+                    }.transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            if inst.running || !inst.log.isEmpty {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            ForEach(Array(inst.log.enumerated()), id: \.offset) { Text($0.element).id($0.offset) }
+                        }.font(.system(.caption2, design: .monospaced)).frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled)
+                    }.frame(height: 130).padding(8).background(Color.black.opacity(0.3), in: RoundedRectangle(cornerRadius: 10))
+                    .onChange(of: inst.log.count) { _ in if let l = inst.log.indices.last { proxy.scrollTo(l, anchor: .bottom) } }
+                }
+            }
+            if inst.running { Button(TT("Cancel", S)) { inst.cancel() }.buttonStyle(SoftButton()) }
+            if inst.finished { Label(TT("ClamAV is ready", S), systemImage: "checkmark.seal.fill").foregroundStyle(.green).font(.callout.weight(.semibold)) }
+            if let f = inst.failure, !inst.running {
+                Text(f).font(.callout).foregroundStyle(.orange).textSelection(.enabled)
+                if !inst.steps.isEmpty { Button(TT("Retry", S)) { Task { await inst.run() } }.buttonStyle(PinkButton()) }
+            }
+        }.animation(spring, value: inst.confirming)
     }
 }
 
@@ -382,7 +433,72 @@ enum ProtectionSelfTest {
         t.check(FileManager.default.fileExists(atPath: victim), "removal undoable")
         m.stale = false; m.detections = [Detection(path: victim, signature: "x")]; m.handleEngineChange(op: "undo", paths: [victim])
         t.check(m.stale && m.detections.count == 1, "undo flags stale without dropping")
+        await installTests(t, f)
         let denied = ProtectionModel(engine: fake, runner: fr, roots: roots, signer: signer, exclusions: { [] }); denied.detections = [Detection(path: "/System/Library", signature: "x")]; denied.selected = ["/System/Library"]; denied.removeSelected()
         t.check(denied.message != nil && FileManager.default.fileExists(atPath: "/System/Library"), "Safety refuses protected path removal")
+    }
+
+    final class FakeInstallRunner: InstallRunner, @unchecked Sendable {
+        let l = NSLock(); var calls: [[String]] = [], envs: [[String: String]] = [], failAt: Int?, blockUntilCancel = false, killed = false
+        func run(_ exe: String, _ args: [String], env: [String: String], timeout: TimeInterval, cancel: CancelFlag, onLine: @escaping @Sendable (String) -> Void) -> ProcResult {
+            l.lock(); calls.append([exe] + args); envs.append(env); let n = calls.count - 1; l.unlock()
+            if blockUntilCancel { while !cancel.isSet { Thread.sleep(forTimeInterval: 0.02) }; l.lock(); killed = true; l.unlock(); var r = ProcResult(); r.cancelled = true; return r }
+            onLine("fake line \(n)")
+            var r = ProcResult(); r.status = (failAt == n) ? 1 : 0; return r
+        }
+        var count: Int { l.lock(); defer { l.unlock() }; return calls.count }
+    }
+    @MainActor static func installTests(_ t: TestCtx, _ f: Fixture) async {
+        let brew = f.file("hb/bin/brew", kb: 1); chmod(brew, 0o755)
+        let pre = f.root + "/hb", conf = pre + "/etc/clamav/freshclam.conf"
+        f.dir("hb/etc/clamav")
+        try? "# header\nExample\nDatabaseDirectory /x\n".write(toFile: conf + ".sample", atomically: true, encoding: .utf8)
+        func make(_ r: FakeInstallRunner, uid: uid_t = 501, brews: [String]? = nil) -> ClamInstaller {
+            let i = ClamInstaller(); i.runner = r; i.uid = { uid }; i.brewCandidates = brews ?? [brew]; return i
+        }
+        // plan: argv arrays, order, no shell
+        let plan = ClamInstall.plan(brew: brew)
+        let argvs = plan.compactMap { s -> [String]? in if case .process(let e, let a, _) = s.action { return [e] + a } else { return nil } }
+        t.check(argvs == [[brew, "install", "clamav"], [pre + "/bin/freshclam"]] && !argvs.joined().contains("sh") && !argvs.joined().contains("-c"), "install plan: argv arrays, no sh / -c")
+        t.check(plan.count == 3 && { if case .conf = plan[1].action { return true } else { return false } }(), "install plan: brew -> conf -> freshclam"); t.reachedCode()
+        t.check(ClamInstall.prefix(ofBrew: "/opt/homebrew/bin/brew") == "/opt/homebrew" && ClamInstall.prefix(ofBrew: "/usr/local/bin/brew") == "/usr/local", "prefix from brew location")
+        let env = ClamInstall.environment(prefix: pre, base: ["PATH": "/evil"])
+        t.check(env["HOMEBREW_NO_AUTO_UPDATE"] == "1" && env["HOMEBREW_NO_ANALYTICS"] == "1" && env["PATH"]!.hasPrefix(pre + "/bin:") && env["PATH"]!.hasSuffix("/usr/bin:/bin"), "environment: brew vars and sane PATH")
+
+        // happy path
+        let r1 = FakeInstallRunner(), i1 = make(r1); var ready = 0; i1.onReady = { ready += 1 }
+        await i1.run()
+        t.check(r1.calls == [[brew, "install", "clamav"], [pre + "/bin/freshclam"]] && i1.steps.map(\.state) == [.ok, .ok, .ok] && i1.finished && ready == 1 && i1.failure == nil, "run: brew, conf (in Swift), freshclam; ready triggers recheck"); t.reachedCode()
+        t.check(r1.envs.allSatisfy { $0["HOMEBREW_NO_AUTO_UPDATE"] == "1" && ($0["PATH"] ?? "").contains(pre + "/bin") } && i1.log.contains("fake line 0"), "run: env passed to runner, log streamed")
+        let c1 = (try? String(contentsOfFile: conf, encoding: .utf8)) ?? ""
+        t.check(c1.contains("#Example") && !c1.contains("\nExample") && c1.contains("DatabaseDirectory /x"), "conf: created from sample with Example commented out")
+
+        // idempotent re-run: existing conf is never overwritten
+        try? "Example\nuser-edited\n".write(toFile: conf, atomically: true, encoding: .utf8)
+        let r2 = FakeInstallRunner(), i2 = make(r2); await i2.run()
+        t.check(i2.finished && (try? String(contentsOfFile: conf, encoding: .utf8)) == "Example\nuser-edited\n", "re-run: existing conf untouched, steps ok")
+
+        // failure of step 1 stops later steps; retry resumes from it
+        try? FileManager.default.removeItem(atPath: conf)
+        let r3 = FakeInstallRunner(); r3.failAt = 0; let i3 = make(r3); await i3.run()
+        t.check(r3.count == 1 && i3.steps.map(\.state) == [.failed, .pending, .pending] && i3.failure != nil && !FileManager.default.fileExists(atPath: conf) && !i3.finished, "failure of step 1 stops later steps")
+        r3.failAt = nil; await i3.run()
+        t.check(r3.calls[1] == [brew, "install", "clamav"] && i3.finished && i3.steps.map(\.state) == [.ok, .ok, .ok], "retry resumes from the failed step")
+
+        // missing brew: message with brew.sh, no process started
+        let r4 = FakeInstallRunner(), i4 = make(r4, brews: [f.root + "/nobrew"]); await i4.run()
+        t.check(r4.count == 0 && (i4.failure ?? "").contains("https://brew.sh") && i4.steps.isEmpty, "missing brew: brew.sh message, nothing started")
+
+        // root refused
+        let r5 = FakeInstallRunner(), i5 = make(r5, uid: 0); await i5.run()
+        t.check(r5.count == 0 && i5.failure != nil && !i5.finished, "uid 0 refused, nothing started")
+
+        // cancel kills the running child and marks the step cancelled
+        try? FileManager.default.removeItem(atPath: conf)
+        let r6 = FakeInstallRunner(); r6.blockUntilCancel = true; let i6 = make(r6)
+        let job = Task { await i6.run() }
+        while r6.count == 0 { try? await Task.sleep(nanoseconds: 20_000_000) }
+        i6.cancel(); await job.value
+        t.check(r6.killed && i6.steps.first?.state == .cancelled && !i6.running && !i6.finished && r6.count == 1, "cancel: child killed, step marked cancelled")
     }
 }

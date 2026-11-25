@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 // Engine layer: ClamAV (GPLv2) is used ONLY as an external child process. No ClamAV code is linked or bundled (keeps this project MIT).
 
@@ -43,8 +43,9 @@ struct ProcResult { var status: Int32 = -1; var output = ""; var timedOut = fals
 
 enum ProcRunner {
     /// Runs exe with argv (never through a shell), merges stdout+stderr, streams complete lines to onLine. SIGTERM on cancel/timeout.
-    static func run(_ exe: String, _ args: [String], timeout: TimeInterval, cancel: CancelFlag? = nil, onLine: (@Sendable (String) -> Void)? = nil) -> ProcResult {
+    static func run(_ exe: String, _ args: [String], timeout: TimeInterval, cancel: CancelFlag? = nil, env: [String: String]? = nil, onLine: (@Sendable (String) -> Void)? = nil) -> ProcResult {
         let p = Process(), pipe = Pipe()
+        if let env { p.environment = env }
         p.executableURL = URL(fileURLWithPath: exe); p.arguments = args
         p.standardOutput = pipe; p.standardError = pipe; p.standardInput = FileHandle.nullDevice
         var res = ProcResult()
@@ -293,4 +294,111 @@ enum PersistenceAudit {
         }
         return out.sorted { $0.severity > $1.severity }
     }
+}
+
+// MARK: automatic ClamAV install (opt-in; typed steps, argv only, never a shell)
+
+enum StepState: Equatable { case pending, running, ok, failed, cancelled }
+enum StepAction: Equatable { case process(exe: String, args: [String], timeout: TimeInterval), conf(prefix: String) }
+struct InstallStep: Identifiable, Equatable {
+    let id: Int; let name: String; let action: StepAction; var state: StepState = .pending
+}
+
+protocol InstallRunner: Sendable {
+    func run(_ exe: String, _ args: [String], env: [String: String], timeout: TimeInterval, cancel: CancelFlag, onLine: @escaping @Sendable (String) -> Void) -> ProcResult
+}
+struct SystemInstallRunner: InstallRunner {
+    func run(_ exe: String, _ args: [String], env: [String: String], timeout: TimeInterval, cancel: CancelFlag, onLine: @escaping @Sendable (String) -> Void) -> ProcResult {
+        ProcRunner.run(exe, args, timeout: timeout, cancel: cancel, env: env, onLine: onLine)
+    }
+}
+
+enum ClamInstall {
+    static let brewPaths = ["/opt/homebrew/bin/brew", "/usr/local/bin/brew"]
+    static func findBrew(_ candidates: [String] = brewPaths) -> String? { candidates.first { FileManager.default.isExecutableFile(atPath: $0) } }
+    /// brew lives at <prefix>/bin/brew.
+    static func prefix(ofBrew brew: String) -> String { ((brew as NSString).deletingLastPathComponent as NSString).deletingLastPathComponent }
+
+    static func plan(brew: String) -> [InstallStep] {
+        let pre = prefix(ofBrew: brew)
+        return [
+            InstallStep(id: 0, name: "Install ClamAV with Homebrew", action: .process(exe: brew, args: ["install", "clamav"], timeout: 900)),
+            InstallStep(id: 1, name: "Create freshclam.conf", action: .conf(prefix: pre)),
+            InstallStep(id: 2, name: "Download signatures (freshclam)", action: .process(exe: pre + "/bin/freshclam", args: [], timeout: 900)),
+        ]
+    }
+    static func environment(prefix: String, base: [String: String] = ProcessInfo.processInfo.environment) -> [String: String] {
+        var e = base
+        e["PATH"] = prefix + "/bin:/usr/bin:/bin"
+        e["HOMEBREW_NO_AUTO_UPDATE"] = "1"; e["HOMEBREW_NO_ANALYTICS"] = "1"
+        return e
+    }
+    /// Idempotent: an existing freshclam.conf is never touched. Returns an error message or nil.
+    static func configure(prefix: String) -> String? {
+        let fm = FileManager.default
+        let conf = prefix + "/etc/clamav/freshclam.conf", sample = conf + ".sample"
+        if fm.fileExists(atPath: conf) { return nil }
+        guard let text = try? String(contentsOfFile: sample, encoding: .utf8) else { return "Cannot read \(sample)" }
+        let out = text.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) == "Example" ? "#Example" : $0 }.joined(separator: "\n")
+        do { try out.write(toFile: conf, atomically: true, encoding: .utf8) } catch { return error.localizedDescription }
+        return nil
+    }
+}
+
+@MainActor final class ClamInstaller: ObservableObject {
+    @Published var steps: [InstallStep] = []
+    @Published var log: [String] = []
+    @Published var running = false
+    @Published var failure: String?
+    @Published var finished = false
+    @Published var confirming = false
+    var runner: InstallRunner = SystemInstallRunner()
+    var uid: () -> uid_t = { getuid() }
+    var brewCandidates = ClamInstall.brewPaths
+    var onReady: () -> Void = {}
+    private var cancelFlag = CancelFlag()
+    private var env: [String: String] = [:]
+
+    private func append(_ l: String) { log.append(l); if log.count > 300 { log.removeFirst(log.count - 300) } }
+    private func set(_ i: Int, _ s: StepState) { withAnimation(spring) { steps[i].state = s } }
+
+    /// Runs (or resumes from the first non-ok step). Only ever called after explicit consent.
+    func run() async {
+        guard !running else { return }
+        confirming = false; failure = nil; finished = false
+        guard uid() != 0 else { failure = TT("Refusing to run as root. Open the app as a normal user.", "Protection"); return }
+        guard let brew = ClamInstall.findBrew(brewCandidates) else {
+            steps = []; failure = TT("Homebrew was not found. Install it from https://brew.sh, then try again. This app does not install Homebrew.", "Protection"); return
+        }
+        if steps.isEmpty { steps = ClamInstall.plan(brew: brew) }
+        env = ClamInstall.environment(prefix: ClamInstall.prefix(ofBrew: brew))
+        running = true; cancelFlag = CancelFlag()
+        defer { running = false }
+        let runner = self.runner, env = self.env, flag = cancelFlag
+        for i in steps.indices where steps[i].state != .ok {
+            set(i, .running); append("$ " + steps[i].name)
+            var err: String?
+            switch steps[i].action {
+            case .conf(let pre): err = ClamInstall.configure(prefix: pre)
+            case .process(let exe, let args, let timeout):
+                append("$ " + ([exe] + args).joined(separator: " "))
+                let r = await Task.detached {
+                    runner.run(exe, args, env: env, timeout: timeout, cancel: flag) { l in Task { @MainActor in self.append(l) } }
+                }.value
+                if r.cancelled { set(i, .cancelled); failure = TT("Cancelled", "Protection"); return }
+                if let e = r.launchError { err = e }
+                else if r.timedOut { err = TT("Timed out", "Protection") }
+                else if r.status != 0 { err = TTF("Exited with status %d", "Protection", Int(r.status)) }
+            }
+            if let err {
+                set(i, .failed)
+                failure = TT(steps[i].name, "Protection") + ": " + err + "\n" + log.suffix(5).joined(separator: "\n")
+                return
+            }
+            set(i, .ok)
+        }
+        withAnimation(spring) { finished = true }
+        onReady()
+    }
+    func cancel() { cancelFlag.set() }
 }
