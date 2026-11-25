@@ -60,7 +60,7 @@ enum CLI {
                 let path = abs(p)
                 guard FileManager.default.fileExists(atPath: path) else { res.append(["path": path, "status": "not_found"]); continue }
                 if !yes { res.append(["path": path, "status": "dry_run"]); continue }
-                do { try FileManager.default.trashItem(at: URL(fileURLWithPath: path), resultingItemURL: nil); res.append(["path": path, "status": "trashed"]) }
+                do { try Engine.trash(path); res.append(["path": path, "status": "trashed"]) }
                 catch { res.append(["path": path, "status": "error", "error": error.localizedDescription]) }
             }
             emit(["results": res, "dry_run": !yes])

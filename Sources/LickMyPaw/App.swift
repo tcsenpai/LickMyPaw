@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum Page { case home, prowl }
+enum Page { case home, prowl, cleanup, apps, settings }
 
 let spring = Animation.spring(response: 0.45, dampingFraction: 0.86)
 
@@ -65,13 +65,13 @@ let spring = Animation.spring(response: 0.45, dampingFraction: 0.86)
     func trash(_ n: Node) {
         guard !n.isAggregate else { return }
         do {
-            try FileManager.default.trashItem(at: n.url, resultingItemURL: nil)
+            try Engine.trash(n.path, size: n.size)
             var a = n.parent
             while let p = a { p.size -= n.size; a = p.parent }
             n.parent?.children.removeAll { $0 === n }
             checked.remove(n)
             objectWillChange.send()
-        } catch { self.error = TF("Could not move %@ to the Trash: %@", n.name, error.localizedDescription) }
+        } catch { self.error = error.localizedDescription }
     }
     func trashChecked() { for n in checked { trash(n) }; checked = [] }
 }
@@ -182,8 +182,15 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 sidebar
                 ZStack {
-                    if m.page == .home { home.transition(.opacity.combined(with: .scale(scale: 0.985))) }
-                    else { prowlPage.transition(.opacity.combined(with: .scale(scale: 0.985))) }
+                    Group {
+                        switch m.page {
+                        case .home: home
+                        case .prowl: prowlPage
+                        case .cleanup: CleanupView()
+                        case .apps: AppsView()
+                        case .settings: SettingsView()
+                        }
+                    }.transition(.opacity.combined(with: .scale(scale: 0.985)))
                 }.frame(maxWidth: .infinity, maxHeight: .infinity).animation(spring, value: m.page)
             }
         }
@@ -210,14 +217,17 @@ struct ContentView: View {
         VStack(spacing: 10) {
             navItem("house.fill", "Home", page: .home)
             navItem("circle.hexagongrid.fill", "Prowl", page: .prowl)
+            navItem("trash.fill", "Cleanup", page: .cleanup)
+            navItem("square.grid.2x2.fill", "Applications", page: .apps)
             Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1).padding(.vertical, 4)
             ForEach(Self.future, id: \.1) { navItem($0.0, $0.1, page: nil) }
             Spacer()
+            navItem("gearshape.fill", "Settings", page: .settings).padding(.bottom, 14)
         }.padding(.top, 52).frame(width: 74).background(Color.black.opacity(0.18)).ignoresSafeArea()
     }
 
-    static let future = [("sparkles", "Purr"), ("trash.fill", "Cleanup"), ("shield.lefthalf.filled", "Protection"),
-                         ("bolt.fill", "Performance"), ("square.grid.2x2.fill", "Applications")]
+    static let future = [("sparkles", "Purr"), ("shield.lefthalf.filled", "Protection"),
+                         ("bolt.fill", "Performance")]
 
     func navItem(_ icon: String, _ title: String, page: Page?) -> some View {
         let on = page != nil && m.page == page
@@ -256,14 +266,15 @@ struct ContentView: View {
                     }
                     Spacer()
                 }.padding(24).glass(28)
+                PermissionsBanner()
                 Text(T("Tools")).font(.system(size: 18, weight: .semibold, design: .rounded)).padding(.top, 4)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 16)], spacing: 16) {
                     ModuleCard(icon: "circle.hexagongrid.fill", title: "Prowl", text: T("Visual map of your storage: find and remove what weighs the most."), active: true) { m.page = .prowl }
                     ModuleCard(icon: "sparkles", title: "Purr", text: T("Quick check of cleanup, protection and performance."), active: false) {}
-                    ModuleCard(icon: "trash.fill", title: T("Cleanup"), text: T("Useless caches, logs and system files."), active: false) {}
+                    ModuleCard(icon: "trash.fill", title: T("Cleanup"), text: T("Useless caches, logs and system files."), active: true) { m.page = .cleanup }
                     ModuleCard(icon: "shield.lefthalf.filled", title: T("Protection"), text: T("Scan for malware and privacy threats."), active: false) {}
                     ModuleCard(icon: "bolt.fill", title: T("Performance"), text: T("Processes, login items, maintenance."), active: false) {}
-                    ModuleCard(icon: "square.grid.2x2.fill", title: T("Applications"), text: T("Uninstall and update apps."), active: false) {}
+                    ModuleCard(icon: "square.grid.2x2.fill", title: T("Applications"), text: T("Uninstall and update apps."), active: true) { m.page = .apps }
                 }
             }.foregroundStyle(.white).padding(.horizontal, 30).padding(.vertical, 40)
         }
@@ -460,7 +471,7 @@ struct ContentView: View {
             }
             exit(0)
         }
-        if CommandLine.arguments.contains("--selftest") { Task { @MainActor in await selfTest() }; dispatchMain() }
+        if let i = CommandLine.arguments.firstIndex(of: "--selftest") { let only = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : nil; Task { @MainActor in await SelfTests.main(only: only) }; dispatchMain() }
         let a = CommandLine.arguments   // headless GUI check: LickMyPaw --render <path> <out.png>
         if let i = a.firstIndex(of: "--render"), i + 2 < a.count {
             MainActor.assumeIsolated {
@@ -479,11 +490,11 @@ struct ContentView: View {
 }
 
 /// Headless check of the interactive logic the window drives: scan -> open -> up -> select -> trash.
-@MainActor func selfTest() async {
-    var fails = 0
-    func check(_ c: Bool, _ m: String) { print(c ? "ok   " : "FAIL ", m); if !c { fails += 1 } }
+@MainActor func coreSuite(_ t: TestCtx) async {
+    func check(_ c: Bool, _ m: String) { t.check(c, m); t.reachedCode() }
     let fm = FileManager.default
     let d = NSTemporaryDirectory() + "sl-\(getpid())"
+    setenv("LICKMYPAW_HOME", d + "-home", 1); defer { unsetenv("LICKMYPAW_HOME"); try? fm.removeItem(atPath: d + "-home") }
     try? fm.createDirectory(atPath: d + "/a/sub", withIntermediateDirectories: true)
     try? fm.createDirectory(atPath: d + "/b", withIntermediateDirectories: true)
     func w(_ p: String, _ mb: Int) { fm.createFile(atPath: d + p, contents: Data(repeating: 7, count: mb << 20)) }
@@ -508,5 +519,4 @@ struct ContentView: View {
     check(!fm.fileExists(atPath: d + "/a/big") && m.checked.isEmpty, "trashChecked moved file off disk")
     check(m.root!.size == before - big.size && !a.children.contains { $0 === big }, "sizes updated up the chain")
     try? fm.removeItem(atPath: d)
-    print(fails == 0 ? "SELFTEST PASS" : "SELFTEST FAIL"); exit(fails == 0 ? 0 : 1)
 }
