@@ -1,0 +1,14 @@
+"Finish setup" = "Terminer la configuration";
+"Grant Full Disk Access to scan your whole disk" = "Accordez l'accès complet au disque pour analyser tout le disque";
+"Without it, protected folders are skipped." = "Sans lui, les dossiers protégés sont ignorés.";
+"Set up…" = "Configurer…";
+"Full Disk Access" = "Accès complet au disque";
+"Open System Settings > Privacy & Security > Full Disk Access." = "Ouvrez Réglages Système > Confidentialité et sécurité > Accès complet au disque.";
+"Switch on LickMyPaw in the list (use + to add it if missing)." = "Activez LickMyPaw dans la liste (utilisez + pour l'ajouter s'il manque).";
+"Come back here: this window updates by itself." = "Revenez ici : cette fenêtre se met à jour toute seule.";
+"Access granted" = "Accès accordé";
+"Waiting for permission…" = "En attente de l'autorisation…";
+"Open System Settings" = "Ouvrir Réglages Système";
+"Relaunch LickMyPaw" = "Relancer LickMyPaw";
+"Not now" = "Pas maintenant";
+"Later" = "Plus tard";
