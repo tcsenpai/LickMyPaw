@@ -35,8 +35,9 @@ enum AppInventory {
                 let name = (info?["CFBundleDisplayName"] as? String) ?? (info?["CFBundleName"] as? String) ?? String(e.dropLast(4))
                 let ver = (info?["CFBundleShortVersionString"] as? String) ?? (info?["CFBundleVersion"] as? String) ?? ""
                 let mas = fm.fileExists(atPath: p + "/Contents/_MASReceipt")
-                // shortcut: com.apple.* without a MAS receipt counts as shipped-with-macOS (Xcode etc. also match), refuse rather than risk it
-                let sys = Safety.real(p).hasPrefix("/System") || (bid.hasPrefix("com.apple.") && !mas)
+                // com.apple.* without a MAS receipt counts as shipped-with-macOS (refuse rather than risk it), except Apple apps users install themselves
+                let removableApple = ["com.apple.dt.Xcode", "com.apple.iWork.", "com.apple.garageband", "com.apple.iMovie", "com.apple.logic", "com.apple.FinalCut", "com.apple.dt.Instruments"]
+                let sys = Safety.real(p).hasPrefix("/System") || (bid.hasPrefix("com.apple.") && !mas && !removableApple.contains(where: { bid.hasPrefix($0) }))
                 out.append(AppInfo(name: name, bundleID: bid, version: ver, path: p, size: allocSize(p), source: mas ? .appStore : .other,
                                    isSystem: sys, running: running.contains(bid), lastUsed: nil))
             }

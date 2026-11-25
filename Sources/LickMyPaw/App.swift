@@ -483,9 +483,16 @@ struct ContentView: View {
                 case "settings": inner = AnyView(SettingsView())
                 default: inner = AnyView(FDAGuideView(onNotNow: {}, onClose: {}))
                 }
+                // Offscreen NSHostingView in a window that is never shown: draws ScrollViews/native controls too (ImageRenderer cannot).
+                let app = NSApplication.shared; app.setActivationPolicy(.prohibited)
                 let v = ZStack { Background(); inner }.frame(width: 900, height: 600).preferredColorScheme(.dark)
-                let r = ImageRenderer(content: v); r.scale = 1
-                guard let img = r.nsImage, let tiff = img.tiffRepresentation, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) else { print("render failed"); exit(1) }
+                let host = NSHostingView(rootView: v); host.frame = NSRect(x: 0, y: 0, width: 900, height: 600)
+                let win = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+                win.contentView = host; win.appearance = NSAppearance(named: .darkAqua)
+                for _ in 0..<(Int(ProcessInfo.processInfo.environment["LMP_RENDER_WAIT"] ?? "") ?? 40) { RunLoop.main.run(until: Date().addingTimeInterval(0.1)); host.layoutSubtreeIfNeeded() }   // let async scans finish
+                guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { print("render failed"); exit(1) }
+                host.cacheDisplay(in: host.bounds, to: rep)
+                guard let png = rep.representation(using: .png, properties: [:]) else { print("render failed"); exit(1) }
                 try? png.write(to: URL(fileURLWithPath: pa[i + 2])); print("rendered \(pa[i + 1]) -> \(pa[i + 2])"); exit(0)
             }
         }
