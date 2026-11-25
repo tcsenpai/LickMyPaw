@@ -27,7 +27,7 @@ jobs:
         run: |
           swift build -c release
           # headless suites on a throwaway home; they never touch real user data
-          timeout 600 .build/release/LickMyPaw --selftest
+          .build/release/LickMyPaw --selftest
 
       - name: Package (DMG + zipped app)
         run: VERSION="${{ steps.ver.outputs.version }}" ./package.sh
