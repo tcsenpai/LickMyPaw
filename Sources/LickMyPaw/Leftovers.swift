@@ -62,25 +62,75 @@ enum LeftoverMatcher {
     }
 }
 
+protocol Launchctl {
+    func bootout(plist: String) -> Result<Void, EngineError>
+    func isLoaded(label: String) -> Bool
+}
+
+protocol AppTerminator {
+    func isRunning(bundleID: String) -> Bool
+    /// true when the app quit within the timeout
+    func terminate(bundleID: String) -> Bool
+}
+
+/// Only user LaunchAgents (~/Library/LaunchAgents), as the current user, never root.
+struct SystemLaunchctl: Launchctl {
+    static func label(of plist: String) -> String? {
+        (NSDictionary(contentsOfFile: plist)?["Label"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+    }
+    private func run(_ args: [String]) -> (Int32, String) {
+        let p = Process(), pipe = Pipe()
+        p.executableURL = URL(fileURLWithPath: "/bin/launchctl"); p.arguments = args
+        p.standardOutput = pipe; p.standardError = pipe
+        do { try p.run() } catch { return (-1, error.localizedDescription) }
+        let out = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+        p.waitUntilExit(); return (p.terminationStatus, out)
+    }
+    func bootout(plist: String) -> Result<Void, EngineError> {
+        guard geteuid() != 0 else { return .failure(EngineError(message: "Refused: running as root")) }
+        guard plist.hasPrefix(Env.home + "/Library/LaunchAgents/"), !plist.contains("..") else { return .failure(EngineError(message: "Refused: not a user LaunchAgent")) }
+        guard let label = Self.label(of: plist) else { return .success(()) }   // unreadable plist: nothing to unload
+        let (code, out) = run(["bootout", "gui/\(getuid())/\(label)"])
+        // 3 = no such process, 113 = not found: already unloaded is fine
+        return code == 0 || code == 3 || code == 113 || out.contains("No such process") ? .success(()) : .failure(EngineError(message: "launchctl bootout failed (\(code)): \(out)"))
+    }
+    func isLoaded(label: String) -> Bool { run(["print", "gui/\(getuid())/\(label)"]).0 == 0 }
+}
+
+struct SystemAppTerminator: AppTerminator {
+    func isRunning(bundleID: String) -> Bool { NSRunningApplicationLookup.running(bundleID) != nil }
+    func terminate(bundleID: String) -> Bool {
+        guard let r = NSRunningApplicationLookup.running(bundleID) else { return true }
+        r.terminate()   // never forceTerminate
+        for _ in 0..<50 where !r.isTerminated { Thread.sleep(forTimeInterval: 0.1) }
+        return r.isTerminated
+    }
+}
+
 enum Uninstaller {
     struct ItemResult { let path: String; let ok: Bool; let error: String? }
+    nonisolated(unsafe) static var launchctl: Launchctl = SystemLaunchctl()
+    nonisolated(unsafe) static var terminator: AppTerminator = SystemAppTerminator()
 
-    /// Quits the app if running (when `quit`), then trashes the bundle and the given leftovers. Never removes files directly.
+    /// Quits the app if running (when `quit`), boots out LaunchAgent leftovers, then trashes the bundle and the given leftovers. Never removes files directly.
     static func uninstall(_ app: AppInfo, _ leftovers: [Leftover], quit: Bool = true) async -> [ItemResult] {
         if app.isSystem { return [ItemResult(path: app.path, ok: false, error: "Refused: system app")] }
-        if let r = NSRunningApplicationLookup.running(app.bundleID) {
+        if !app.bundleID.isEmpty, terminator.isRunning(bundleID: app.bundleID) {
             guard quit else { return [ItemResult(path: app.path, ok: false, error: "App is running")] }
-            r.terminate()
-            for _ in 0..<50 where !r.isTerminated { try? await Task.sleep(nanoseconds: 100_000_000) }
-            if !r.isTerminated { return [ItemResult(path: app.path, ok: false, error: "Could not quit \(app.name)")] }
+            if !terminator.terminate(bundleID: app.bundleID) { return [ItemResult(path: app.path, ok: false, error: "Could not quit \(app.name)")] }
         }
         var res: [ItemResult] = []
         func go(_ p: String, _ size: Int64) {
             do { try Engine.trash(p, size: size, mode: .userSelected); res.append(.init(path: p, ok: true, error: nil)) }
             catch { res.append(.init(path: p, ok: false, error: error.localizedDescription)) }
         }
+        let agents = Env.home + "/Library/LaunchAgents/"
+        var failed = Set<String>()   // still loaded: don't trash their plist
+        for l in leftovers where !l.readOnly && l.path.hasPrefix(agents) && l.path.hasSuffix(".plist") {
+            if case .failure(let e) = launchctl.bootout(plist: l.path) { failed.insert(l.path); res.append(.init(path: l.path, ok: false, error: e.message)) }
+        }
         go(app.path, app.size)
-        for l in leftovers where !l.readOnly { go(l.path, l.size) }
+        for l in leftovers where !l.readOnly && !failed.contains(l.path) { go(l.path, l.size) }
         return res
     }
 }

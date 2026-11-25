@@ -182,6 +182,17 @@ struct AppsView: View {
     }
 }
 
+final class FakeLaunchctl: Launchctl {
+    var events: [String] = []; var fail = false; var existedAtBootout: [Bool] = []
+    func bootout(plist: String) -> Result<Void, EngineError> { events.append("bootout:" + plist); existedAtBootout.append(FileManager.default.fileExists(atPath: plist)); return fail ? .failure(EngineError(message: "boom")) : .success(()) }
+    func isLoaded(label: String) -> Bool { false }
+}
+final class FakeTerminator: AppTerminator {
+    var running = true, quits = true; var events: [String] = []
+    func isRunning(bundleID: String) -> Bool { running }
+    func terminate(bundleID: String) -> Bool { events.append("terminate:" + bundleID); if quits { running = false }; return quits }
+}
+
 enum AppsSelfTest {
     @MainActor static func run(_ t: TestCtx) async {
         let f = Fixture(); defer { f.cleanup() }
@@ -233,5 +244,35 @@ enum AppsSelfTest {
         t.check(log.count == res.count && log.contains { $0.path == foo.path } && log.allSatisfy { $0.trashedTo.map { fm.fileExists(atPath: $0) } == true }, "actions logged, items in fake Trash")
         for e in log { try? Engine.undo(e) }
         t.check(fm.fileExists(atPath: foo.path) && fm.fileExists(atPath: hi2) && ActionLog.all().allSatisfy(\.undone), "undo restores everything")
+
+        // injected launchctl / terminator: never touches the real system
+        let fl = FakeLaunchctl(), ft = FakeTerminator()
+        Uninstaller.launchctl = fl; Uninstaller.terminator = ft
+        defer { Uninstaller.launchctl = SystemLaunchctl(); Uninstaller.terminator = SystemAppTerminator() }
+        let plist = f.home + "/Library/LaunchAgents/com.test.foo.helper.plist"
+        let sysPlist = "/Library/LaunchAgents/com.test.foo.helper.plist"
+        let agent = Leftover(path: plist, size: 4096, confidence: .high, readOnly: false)
+        let sysAgent = Leftover(path: sysPlist, size: 4096, confidence: .high, readOnly: true)
+
+        ft.quits = false
+        let r1 = await Uninstaller.uninstall(foo, [agent], quit: true)
+        t.reachedCode()
+        t.check(r1.count == 1 && !r1[0].ok && ft.events == ["terminate:com.test.foo"] && fl.events.isEmpty && fm.fileExists(atPath: foo.path) && fm.fileExists(atPath: plist), "app refuses to quit -> nothing trashed, error reported")
+        ft.events = []; ft.running = true
+        let r2 = await Uninstaller.uninstall(foo, [agent], quit: false)
+        t.check(r2.count == 1 && !r2[0].ok && ft.events.isEmpty && fl.events.isEmpty && fm.fileExists(atPath: foo.path), "quit:false on running app -> refused, no terminate")
+        ft.quits = true
+        let r3 = await Uninstaller.uninstall(foo, [agent, sysAgent], quit: true)
+        t.check(r3.allSatisfy(\.ok) && r3.count == 2 && ft.events == ["terminate:com.test.foo"], "running + quit:true -> terminated then trashed")
+        t.check(fl.events == ["bootout:" + plist], "bootout only for the user LaunchAgent, never /Library")
+        t.check(!fm.fileExists(atPath: foo.path) && !fm.fileExists(atPath: plist), "app and agent plist trashed")
+        t.check(fl.existedAtBootout == [true], "bootout ran BEFORE the plist was trashed")
+
+        // bootout failure keeps the plist
+        let g = f.file("home/Library/LaunchAgents/com.test.foo.other.plist")
+        fl.events = []; fl.fail = true; ft.running = false
+        let bar2 = bar
+        let r4 = await Uninstaller.uninstall(bar2, [Leftover(path: g, size: 4096, confidence: .high, readOnly: false)])
+        t.check(fl.events == ["bootout:" + g] && fm.fileExists(atPath: g) && r4.contains { !$0.ok && $0.path == g }, "failed bootout -> plist not trashed, error reported")
     }
 }
