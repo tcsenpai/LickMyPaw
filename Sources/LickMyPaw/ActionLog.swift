@@ -29,6 +29,12 @@ enum ActionLog {
 
 /// Every deletion: Safety check -> move to Trash (never rm) -> log -> undoable.
 enum Engine {
+    /// Posted (userInfo: "op" = "trash"|"undo", "paths" = [String]) after every successful trash/undo, from ANY section.
+    /// Cached results (Cleanup, Apps...) listen to it to drop vanished items and flag themselves as possibly stale.
+    static let didChange = Notification.Name("LickMyPaw.Engine.didChange")
+    static func announce(_ op: String, _ paths: [String]) {
+        NotificationCenter.default.post(name: didChange, object: nil, userInfo: ["op": op, "paths": paths])
+    }
     @discardableResult
     static func trash(_ path: String, size: Int64 = 0, mode: SafetyMode = .userSelected) throws -> ActionEntry {
         let v = Safety.check(path, mode: mode)
@@ -47,6 +53,7 @@ enum Engine {
         }
         let e = ActionEntry(ts: Date().timeIntervalSince1970, op: "trash", path: path, trashedTo: dest, size: size)
         ActionLog.append(e)
+        announce("trash", [path])
         return e
     }
 
@@ -54,6 +61,7 @@ enum Engine {
         guard let t = e.trashedTo, FileManager.default.fileExists(atPath: t) else { throw EngineError(message: "Nothing to restore (already emptied?)") }
         guard !FileManager.default.fileExists(atPath: e.path) else { throw EngineError(message: "Original location is occupied") }
         try FileManager.default.moveItem(atPath: t, toPath: e.path)
+        announce("undo", [e.path])
         var all = ActionLog.all()
         if let i = all.firstIndex(where: { $0.ts == e.ts && $0.path == e.path }) { all[i].undone = true; ActionLog.rewrite(all) }
     }
