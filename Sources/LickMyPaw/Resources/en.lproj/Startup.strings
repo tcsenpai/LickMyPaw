@@ -1,0 +1,17 @@
+"User agents" = "User agents";
+"System agents" = "System agents";
+"System daemons" = "System daemons";
+"Broken" = "Broken";
+"Rescan" = "Rescan";
+"No launch items found" = "No launch items found";
+"Saved results from %@ (%@) — press Rescan to refresh" = "Saved results from %@ (%@) — press Rescan to refresh";
+"Updated after recent actions — Rescan to be sure" = "Updated after recent actions — Rescan to be sure";
+"Running" = "Running";
+"Loaded" = "Loaded";
+"Disabled" = "Disabled";
+"Admin needed" = "Admin needed";
+"Not loaded" = "Not loaded";
+"Show in Finder" = "Show in Finder";
+"Move to Trash" = "Move to Trash";
+"Only your own agents can be changed" = "Only your own agents can be changed";
+"Only broken user agents can be moved to Trash" = "Only broken user agents can be moved to Trash";
