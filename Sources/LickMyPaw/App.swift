@@ -121,6 +121,17 @@ struct SoftButton: ButtonStyle {
     }
 }
 
+/// Button label with a mini spinner while a (re)scan is running, so the user can see it is working.
+struct SpinnerLabel: View {
+    let title: String; let busy: Bool
+    var body: some View {
+        HStack(spacing: 6) {
+            if busy { ProgressView().controlSize(.small).tint(.white).frame(width: 14, height: 14).transition(.opacity.combined(with: .scale)) }
+            Text(title)
+        }.animation(spring, value: busy)
+    }
+}
+
 struct GaugeRing: View {
     let fraction: Double
     @State private var shown = false
@@ -240,6 +251,7 @@ struct ContentView: View {
             navItem("bolt.fill", "Performance", page: .performance)
             Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1).padding(.vertical, 4)
             Spacer()
+            TrashButton()
             navItem("gearshape.fill", "Settings", page: .settings).padding(.bottom, 14)
         }.padding(.top, 52).frame(width: 74).background(Color.black.opacity(0.18)).ignoresSafeArea()
     }

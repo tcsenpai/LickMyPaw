@@ -13,9 +13,8 @@ struct CleanupView: View {
                 HStack {
                     Text(C("Cleanup")).font(.system(size: 28, weight: .bold, design: .rounded)).foregroundStyle(.white)
                     Spacer()
-                    if m.phase == .ready || m.phase == .done || m.phase == .idle {
-                        Button(m.hasScanned ? C("Rescan") : C("Scan")) { m.scan() }.buttonStyle(SoftButton())
-                    }
+                    Button { m.scan() } label: { SpinnerLabel(title: m.hasScanned ? C("Rescan") : C("Scan"), busy: m.phase == .scanning) }
+                        .buttonStyle(SoftButton()).disabled(m.phase == .scanning || m.phase == .cleaning)
                 }
                 notes
                 content
@@ -47,7 +46,7 @@ struct CleanupView: View {
             else { ScrollView { VStack(spacing: 12) { ForEach(m.groups) { card($0) } } } }
         case .done:
             VStack(spacing: 14) {
-                Text(TTF("Freed %@", "Cleanup", fmt(m.freed))).font(.system(size: 34, weight: .bold, design: .rounded)).foregroundStyle(.white)
+                Text(TTF("Moved to Trash: %@", "Cleanup", fmt(m.freed))).font(.system(size: 34, weight: .bold, design: .rounded)).foregroundStyle(.white)
                 if !m.failures.isEmpty { Text(TTF("%d items could not be cleaned", "Cleanup", m.failures.count)).foregroundStyle(.white.opacity(0.7)) }
                 if m.undone { Text(C("Restored")).foregroundStyle(.white.opacity(0.8)) }
                 else if !m.batch.isEmpty { Button(C("Undo")) { m.undo() }.buttonStyle(PinkButton()) }

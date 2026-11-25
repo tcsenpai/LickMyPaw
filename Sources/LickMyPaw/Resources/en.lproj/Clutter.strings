@@ -20,7 +20,7 @@
 "Duplicates are matched by size, then a 64 KB sample, then a full SHA-256." = "Duplicates are matched by size, then a 64 KB sample, then a full SHA-256.";
 "Find duplicates" = "Find duplicates";
 "Find large, old and duplicate files" = "Find large, old and duplicate files";
-"Freed %@" = "Freed %@";
+"Moved to Trash: %@" = "Moved to Trash: %@";
 "Items go to the Trash and can be undone." = "Items go to the Trash and can be undone.";
 "Keep oldest" = "Keep oldest";
 "Keep shortest path" = "Keep shortest path";

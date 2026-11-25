@@ -37,7 +37,7 @@ struct ClutterView: View {
             Spacer()
             Text((m.root as NSString).abbreviatingWithTildeInPath).font(.caption).foregroundStyle(.white.opacity(0.6)).lineLimit(1).truncationMode(.head)
             Button(C("Choose folder…")) { pick() }.buttonStyle(SoftButton()).disabled(m.scanning)
-            if m.scanning { Button(C("Cancel")) { m.cancel() }.buttonStyle(SoftButton()) }
+            if m.scanning { Button { m.cancel() } label: { SpinnerLabel(title: C("Cancel"), busy: true) }.buttonStyle(SoftButton()) }
             else { Button(m.scannedAt == nil ? C("Scan") : C("Rescan")) { m.scan() }.buttonStyle(PinkButton()) }
         }
     }
@@ -172,7 +172,7 @@ struct ClutterView: View {
 
     private func resultBar(_ r: RemoveResult) -> some View {
         HStack {
-            Text(r.undone ? C("Restored") : TTF("Freed %@", "Clutter", fmt(r.freed))).font(.system(size: 18, weight: .bold, design: .rounded)).foregroundStyle(.white)
+            Text(r.undone ? C("Restored") : TTF("Moved to Trash: %@", "Clutter", fmt(r.freed))).font(.system(size: 18, weight: .bold, design: .rounded)).foregroundStyle(.white)
             if !r.failures.isEmpty { Text(TTF("%d items could not be removed", "Clutter", r.failures.count)).font(.caption).foregroundStyle(.white.opacity(0.7)) }
             Spacer()
             if !r.undone && !r.batch.isEmpty { Button(C("Undo")) { m.undo() }.buttonStyle(PinkButton()) }

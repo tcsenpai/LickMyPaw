@@ -1,0 +1,12 @@
+"Trash" = "Papelera";
+"%@ in Trash" = "%@ en la Papelera";
+"Trash is empty" = "La Papelera está vacía";
+"Size unavailable — grant Full Disk Access to see it" = "Tamaño no disponible: concede Acceso total al disco para verlo";
+"Show Trash" = "Mostrar Papelera";
+"Empty Trash…" = "Vaciar Papelera…";
+"Permanently delete everything in the Trash? This cannot be undone." = "¿Eliminar definitivamente todo el contenido de la Papelera? No se puede deshacer.";
+"Empty Trash" = "Vaciar Papelera";
+"Emptying…" = "Vaciando…";
+"Trash emptied" = "Papelera vaciada";
+"Could not empty the Trash: %@" = "No se pudo vaciar la Papelera: %@";
+"Allow LickMyPaw to control Finder in System Settings → Privacy & Security → Automation." = "Permite que LickMyPaw controle el Finder en Ajustes del Sistema → Privacidad y seguridad → Automatización.";

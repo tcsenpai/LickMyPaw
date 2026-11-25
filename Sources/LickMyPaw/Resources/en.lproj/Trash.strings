@@ -1,0 +1,12 @@
+"Trash" = "Trash";
+"%@ in Trash" = "%@ in Trash";
+"Trash is empty" = "Trash is empty";
+"Size unavailable — grant Full Disk Access to see it" = "Size unavailable — grant Full Disk Access to see it";
+"Show Trash" = "Show Trash";
+"Empty Trash…" = "Empty Trash…";
+"Permanently delete everything in the Trash? This cannot be undone." = "Permanently delete everything in the Trash? This cannot be undone.";
+"Empty Trash" = "Empty Trash";
+"Emptying…" = "Emptying…";
+"Trash emptied" = "Trash emptied";
+"Could not empty the Trash: %@" = "Could not empty the Trash: %@";
+"Allow LickMyPaw to control Finder in System Settings → Privacy & Security → Automation." = "Allow LickMyPaw to control Finder in System Settings → Privacy & Security → Automation.";

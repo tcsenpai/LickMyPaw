@@ -22,6 +22,7 @@ cat > $APP/Contents/Info.plist <<P
 <key>CFBundleVersion</key><string>1</string>
 <key>CFBundleDevelopmentRegion</key><string>en</string>
 <key>CFBundleLocalizations</key><array><string>en</string><string>it</string><string>fr</string><string>es</string></array>
+<key>NSAppleEventsUsageDescription</key><string>LickMyPaw asks Finder to empty the Trash when you choose "Empty Trash".</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>

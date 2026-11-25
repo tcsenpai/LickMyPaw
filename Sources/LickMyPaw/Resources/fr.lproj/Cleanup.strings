@@ -3,7 +3,7 @@
 "Scanning…" = "Analyse en cours…";
 "Cleaning…" = "Nettoyage en cours…";
 "Nothing to clean" = "Rien à nettoyer";
-"Freed %@" = "%@ libérés";
+"Moved to Trash: %@" = "Déplacé dans la Corbeille : %@";
 "%d items could not be cleaned" = "%d éléments n'ont pas pu être nettoyés";
 "Restored" = "Restauré";
 "Undo" = "Annuler";

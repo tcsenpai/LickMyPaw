@@ -20,7 +20,7 @@
 "Duplicates are matched by size, then a 64 KB sample, then a full SHA-256." = "Les doublons sont repérés par taille, puis par un échantillon de 64 Ko, puis par SHA-256 complet.";
 "Find duplicates" = "Trouver les doublons";
 "Find large, old and duplicate files" = "Trouver les fichiers volumineux, anciens et en double";
-"Freed %@" = "%@ libérés";
+"Moved to Trash: %@" = "Déplacé dans la Corbeille : %@";
 "Items go to the Trash and can be undone." = "Les éléments vont à la Corbeille et peuvent être restaurés.";
 "Keep oldest" = "Garder le plus ancien";
 "Keep shortest path" = "Garder le chemin le plus court";

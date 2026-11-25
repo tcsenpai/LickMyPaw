@@ -1,0 +1,12 @@
+"Trash" = "Corbeille";
+"%@ in Trash" = "%@ dans la Corbeille";
+"Trash is empty" = "La Corbeille est vide";
+"Size unavailable — grant Full Disk Access to see it" = "Taille indisponible : accordez l'accès complet au disque pour la voir";
+"Show Trash" = "Afficher la Corbeille";
+"Empty Trash…" = "Vider la Corbeille…";
+"Permanently delete everything in the Trash? This cannot be undone." = "Supprimer définitivement tout le contenu de la Corbeille ? Cette action est irréversible.";
+"Empty Trash" = "Vider la Corbeille";
+"Emptying…" = "Vidage…";
+"Trash emptied" = "Corbeille vidée";
+"Could not empty the Trash: %@" = "Impossible de vider la Corbeille : %@";
+"Allow LickMyPaw to control Finder in System Settings → Privacy & Security → Automation." = "Autorisez LickMyPaw à contrôler le Finder dans Réglages Système → Confidentialité et sécurité → Automatisation.";

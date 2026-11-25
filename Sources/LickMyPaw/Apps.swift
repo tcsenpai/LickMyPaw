@@ -200,7 +200,7 @@ struct AppsView: View {
                     .padding(.horizontal, 12).padding(.vertical, 8).glass(16)
                 Picker("", selection: $m.sort) { Text(TT("Size", T_)).tag(AppsModel.Sort.size); Text(TT("Name", T_)).tag(AppsModel.Sort.name) }
                     .pickerStyle(.segmented).frame(width: 150).labelsHidden()
-                Button(TT("Rescan", T_)) { Task { await m.rescan() } }.buttonStyle(SoftButton()).disabled(m.loading)
+                Button { Task { await m.rescan() } } label: { SpinnerLabel(title: TT("Rescan", T_), busy: m.loading) }.buttonStyle(SoftButton()).disabled(m.loading)
             }
             if let at = m.scannedAt {
                 TimelineView(.periodic(from: .now, by: 30)) { _ in

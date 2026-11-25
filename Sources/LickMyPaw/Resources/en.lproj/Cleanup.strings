@@ -3,7 +3,7 @@
 "Scanning…" = "Scanning…";
 "Cleaning…" = "Cleaning…";
 "Nothing to clean" = "Nothing to clean";
-"Freed %@" = "Freed %@";
+"Moved to Trash: %@" = "Moved to Trash: %@";
 "%d items could not be cleaned" = "%d items could not be cleaned";
 "Restored" = "Restored";
 "Undo" = "Undo";

@@ -23,6 +23,7 @@ enum SelfTests {
         ("clutter", { await ClutterSelfTest.run($0) }),
         ("startup", { await StartupSelfTest.run($0) }),
         ("processes", { await ProcessesSelfTest.run($0) }),
+        ("trash", { await TrashSelfTest.run($0) }),
         ("purr", { await PurrSelfTest.run($0) }),
         ("protection", { await ProtectionSelfTest.run($0) }),
     ]

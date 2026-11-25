@@ -19,7 +19,7 @@ struct StartupView: View {
             HStack {
                 note
                 Spacer()
-                Button(TT("Rescan", S)) { m.scan() }.buttonStyle(SoftButton()).disabled(m.scanning)
+                Button { m.scan() } label: { SpinnerLabel(title: TT("Rescan", S), busy: m.scanning) }.buttonStyle(SoftButton()).disabled(m.scanning)
             }
             if let msg = m.message { Text(msg).font(.callout).foregroundStyle(.orange) }
             if m.scanning && m.items.isEmpty {

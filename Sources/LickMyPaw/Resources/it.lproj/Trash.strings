@@ -1,0 +1,12 @@
+"Trash" = "Cestino";
+"%@ in Trash" = "%@ nel Cestino";
+"Trash is empty" = "Il Cestino è vuoto";
+"Size unavailable — grant Full Disk Access to see it" = "Dimensione non disponibile: concedi l'Accesso completo al disco per vederla";
+"Show Trash" = "Mostra Cestino";
+"Empty Trash…" = "Svuota Cestino…";
+"Permanently delete everything in the Trash? This cannot be undone." = "Eliminare definitivamente tutto il contenuto del Cestino? L'operazione non si può annullare.";
+"Empty Trash" = "Svuota Cestino";
+"Emptying…" = "Svuotamento…";
+"Trash emptied" = "Cestino svuotato";
+"Could not empty the Trash: %@" = "Impossibile svuotare il Cestino: %@";
+"Allow LickMyPaw to control Finder in System Settings → Privacy & Security → Automation." = "Consenti a LickMyPaw di controllare il Finder in Impostazioni di Sistema → Privacy e sicurezza → Automazione.";

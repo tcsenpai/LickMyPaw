@@ -3,7 +3,7 @@
 "Scanning…" = "Analizando…";
 "Cleaning…" = "Limpiando…";
 "Nothing to clean" = "Nada que limpiar";
-"Freed %@" = "%@ liberados";
+"Moved to Trash: %@" = "Movido a la Papelera: %@";
 "%d items could not be cleaned" = "%d elementos no se pudieron limpiar";
 "Restored" = "Restaurado";
 "Undo" = "Deshacer";
