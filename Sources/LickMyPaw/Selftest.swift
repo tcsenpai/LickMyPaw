@@ -20,6 +20,9 @@ enum SelfTests {
         ("cleanup", { await CleanupSelfTest.run($0) }),
         ("prefs", { await PrefsSelfTest.run($0) }),
         ("apps", { await AppsSelfTest.run($0) }),
+        ("clutter", { await ClutterSelfTest.run($0) }),
+        ("startup", { await StartupSelfTest.run($0) }),
+        ("processes", { await ProcessesSelfTest.run($0) }),
     ]
 
     @MainActor static func main(only: String?) async -> Never {

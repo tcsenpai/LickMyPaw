@@ -53,3 +53,7 @@
 "Useless caches, logs and system files." = "Caches, journaux et fichiers système inutiles.";
 "Visual map of your storage: find and remove what weighs the most." = "Carte visuelle de votre stockage : trouvez et supprimez ce qui pèse le plus.";
 "Settings" = "Réglages";
+"Clutter" = "Encombrement";
+"Find large, old and duplicate files." = "Trouvez les fichiers volumineux, anciens et en double.";
+"Startup" = "Démarrage";
+"Processes" = "Processus";

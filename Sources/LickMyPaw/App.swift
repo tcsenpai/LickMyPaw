@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum Page { case home, prowl, cleanup, apps, settings }
+enum Page { case home, prowl, cleanup, apps, clutter, performance, settings }
 
 let spring = Animation.spring(response: 0.45, dampingFraction: 0.86)
 
@@ -188,6 +188,8 @@ struct ContentView: View {
                         case .prowl: prowlPage
                         case .cleanup: CleanupView()
                         case .apps: AppsView()
+                        case .clutter: ClutterView()
+                        case .performance: PerformanceView()
                         case .settings: SettingsView()
                         }
                     }.transition(.opacity.combined(with: .scale(scale: 0.985)))
@@ -220,6 +222,8 @@ struct ContentView: View {
             navItem("circle.hexagongrid.fill", "Prowl", page: .prowl)
             navItem("trash.fill", "Cleanup", page: .cleanup)
             navItem("square.grid.2x2.fill", "Applications", page: .apps)
+            navItem("tray.full.fill", "Clutter", page: .clutter)
+            navItem("bolt.fill", "Performance", page: .performance)
             Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1).padding(.vertical, 4)
             ForEach(Self.future, id: \.1) { navItem($0.0, $0.1, page: nil) }
             Spacer()
@@ -227,8 +231,7 @@ struct ContentView: View {
         }.padding(.top, 52).frame(width: 74).background(Color.black.opacity(0.18)).ignoresSafeArea()
     }
 
-    static let future = [("sparkles", "Purr"), ("shield.lefthalf.filled", "Protection"),
-                         ("bolt.fill", "Performance")]
+    static let future = [("sparkles", "Purr"), ("shield.lefthalf.filled", "Protection")]
 
     func navItem(_ icon: String, _ title: String, page: Page?) -> some View {
         let on = page != nil && m.page == page
@@ -274,7 +277,8 @@ struct ContentView: View {
                     ModuleCard(icon: "sparkles", title: "Purr", text: T("Quick check of cleanup, protection and performance."), active: false) {}
                     ModuleCard(icon: "trash.fill", title: T("Cleanup"), text: T("Useless caches, logs and system files."), active: true) { m.page = .cleanup }
                     ModuleCard(icon: "shield.lefthalf.filled", title: T("Protection"), text: T("Scan for malware and privacy threats."), active: false) {}
-                    ModuleCard(icon: "bolt.fill", title: T("Performance"), text: T("Processes, login items, maintenance."), active: false) {}
+                    ModuleCard(icon: "bolt.fill", title: T("Performance"), text: T("Processes, login items, maintenance."), active: true) { m.page = .performance }
+                    ModuleCard(icon: "tray.full.fill", title: T("Clutter"), text: T("Find large, old and duplicate files."), active: true) { m.page = .clutter }
                     ModuleCard(icon: "square.grid.2x2.fill", title: T("Applications"), text: T("Uninstall and update apps."), active: true) { m.page = .apps }
                 }
             }.foregroundStyle(.white).padding(.horizontal, 30).padding(.vertical, 40)
