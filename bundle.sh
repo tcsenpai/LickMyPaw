@@ -7,12 +7,14 @@ APP=LickMyPaw.app
 rm -rf $APP SpaceLens.app && mkdir -p $APP/Contents/MacOS $APP/Contents/Resources
 cp .build/release/LickMyPaw $APP/Contents/MacOS/
 cp -R .build/release/LickMyPaw_LickMyPaw.bundle $APP/Contents/Resources/
+cp assets/AppIcon.icns $APP/Contents/Resources/
 cat > $APP/Contents/Info.plist <<P
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleName</key><string>LickMyPaw</string>
 <key>CFBundleDisplayName</key><string>LickMyPaw</string>
+<key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundleExecutable</key><string>LickMyPaw</string>
 <key>CFBundleIdentifier</key><string>org.lickmypaw.app</string>
 <key>CFBundlePackageType</key><string>APPL</string>

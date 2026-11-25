@@ -67,6 +67,10 @@ UI strings use the English text as the key. Add or fix translations in
 
 Issues and pull requests are welcome. Keep changes small and include a `--selftest` check for new logic.
 
+## Credits
+
+App icon based on "Black Cat Paw" by lesnivila (CC0, via [Openclipart](https://openclipart.org/detail/28992/black-cat-paw)). Details in [`assets/icon-source/ATTRIBUTION.md`](assets/icon-source/ATTRIBUTION.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
