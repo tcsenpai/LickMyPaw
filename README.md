@@ -18,7 +18,7 @@ Mac cleaners are useful, but the good ones are paid, closed, and ask for deep ac
 - **Free and MIT licensed.** Use it, fork it, change it.
 - **Nothing is deleted for good.** Everything LickMyPaw removes goes to the Trash first, and every action is logged so you can undo it.
 - **One safety gate.** Every delete goes through the same check, which refuses system locations and any folder you excluded.
-- **No network, no telemetry.** The app never phones home. The only download is the ClamAV signature update, and only if you install ClamAV from the app.
+- **No network, no telemetry.** The app never phones home. The only network use is on a button you press: the ClamAV signature update (if you install ClamAV from the app) and the update check in Applications.
 - **Scriptable.** The same binary has a JSON command line, so scripts and AI agents can use it too.
 
 ## Screenshots
@@ -67,8 +67,8 @@ xattr -dr com.apple.quarantine /Applications/LickMyPaw.app
 |---|---|
 | **Home** | Disk usage at a glance and a shortcut to every tool. |
 | **Prowl** | A bubble map of your disk. Scan a folder or the whole disk, drill down, select items and move them to the Trash. Hard links are counted once. |
-| **Cleanup** | User caches, logs, crash reports, saved state and developer caches (Xcode DerivedData, npm, bun, cargo, gradle, pip, uv, Homebrew). Caches of running apps are skipped. |
-| **Applications** | Lists your apps and finds the files they leave behind. You can select several apps and uninstall them in one go. |
+| **Cleanup** | User caches, logs, crash reports, saved state and developer caches (Xcode DerivedData, npm, bun, cargo, gradle, pip, uv, Homebrew), Mail downloads, iOS device backups, Simulator devices, Xcode iOS DeviceSupport and Archives. Risky categories (backups, archives, simulators, Mail downloads) start unchecked. Caches of running apps are skipped, and so are Mail downloads while Mail is open and Simulator devices while Simulator is open. |
+| **Applications** | Lists your apps and finds the files they leave behind. You can select several apps and uninstall them in one go. The Updates tab checks Sparkle feeds, shows which apps update through the App Store, and reads `brew outdated --cask` when Homebrew is installed. It only contacts anything when you press Check for updates, and Homebrew upgrades run only after you confirm. |
 | **Clutter** | Large and old files, and duplicates (size, then a partial hash, then SHA-256). One copy of each duplicate group is always kept. |
 | **Performance** | Startup items with a reversible on/off switch, and processes and memory grouped by app, with a polite quit. |
 | **Purr** | A one-click checkup that reuses the other tools and tells you what needs attention. |
@@ -92,6 +92,7 @@ LickMyPaw covers the everyday jobs. It is a young project, so here is what it do
 | Signed and notarized builds | Yes | Not yet |
 | Menu bar app | Yes | Not yet |
 | Automatic updates | Yes | Not yet |
+| Check apps for updates | Yes | Yes, on demand (Sparkle, App Store, Homebrew casks) |
 | Command line for scripts | No | Yes, JSON output |
 | Telemetry | Depends on settings | None |
 

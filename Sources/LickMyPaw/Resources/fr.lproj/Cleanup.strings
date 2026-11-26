@@ -35,3 +35,11 @@
 "Saved results from %@ (%@): press Rescan to refresh" = "Résultats enregistrés à %@ (%@): appuyez sur Réanalyser pour actualiser";
 "Updated after recent actions: Rescan to be sure" = "Mis à jour après les actions récentes: Réanalysez pour être sûr";
 "Back to results" = "Retour aux résultats";
+"Mail downloads" = "Téléchargements Mail";
+"iOS device backups" = "Sauvegardes d'appareils iOS";
+"Simulator devices" = "Appareils du simulateur";
+"Xcode iOS DeviceSupport" = "Xcode iOS DeviceSupport";
+"Xcode Archives" = "Archives Xcode";
+"Low risk" = "Risque faible";
+"Medium risk" = "Risque moyen";
+"High risk" = "Risque élevé";

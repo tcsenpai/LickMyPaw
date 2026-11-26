@@ -15,6 +15,8 @@ struct CleanupTarget {
     let risk: CleanRisk
     var skipNames: Set<String> = []   // children handled by another target
     var appCaches = false             // children are named after bundle ids: apply running/fragile exclusions
+    var skipWhenRunning: Set<String> = []   // offer nothing while any of these bundle ids is running
+    var custom: (@Sendable (String) -> [(path: String, name: String)])? = nil   // own enumeration (home -> candidates), roots ignored
 }
 
 enum CleanupTargets {
@@ -32,7 +34,7 @@ enum CleanupTargets {
         .init(id: "gradle", name: "Gradle caches", category: devCat, icon: "shippingbox", roots: ["/.gradle/caches"], risk: .medium),
         .init(id: "pip", name: "pip / uv cache", category: devCat, icon: "shippingbox", roots: ["/.cache/uv", "/Library/Caches/pip"], risk: .low),
         .init(id: "brew", name: "Homebrew cache", category: devCat, icon: "shippingbox", roots: ["/Library/Caches/Homebrew"], risk: .low),
-    ]
+    ] + CleanupExtra.targets
 
     /// Tests inject a fake set; production asks NSWorkspace.
     nonisolated(unsafe) static var runningIDs: () -> Set<String> = {
@@ -57,6 +59,14 @@ enum CleanupTargets {
     static func items(_ t: CleanupTarget, running: Set<String>) -> [CleanItem] {
         let home = Env.home, fm = FileManager.default
         var out: [CleanItem] = []
+        if t.skipWhenRunning.contains(where: running.contains) { return [] }
+        if let c = t.custom {
+            for (p, n) in c(home) where !Prefs.exclusions.contains(where: { Safety.under(p, $0) }) {
+                let s = size(p)
+                if s > 0 { out.append(CleanItem(path: p, name: n, size: s, targetID: t.id, risk: t.risk)) }
+            }
+            return out
+        }
         for r in t.roots {
             guard let kids = try? fm.contentsOfDirectory(atPath: home + r) else { continue }
             for k in kids.sorted() where !t.skipNames.contains(k) && !k.hasPrefix(".") {

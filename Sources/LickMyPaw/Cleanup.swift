@@ -65,7 +65,7 @@ struct CleanupView: View {
                     Image(systemName: g.target.icon).font(.system(size: 18)).foregroundStyle(.white).frame(width: 28)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(C(g.target.name)).font(.system(size: 15, weight: .semibold, design: .rounded)).foregroundStyle(.white)
-                        Text(C(g.target.category)).font(.caption).foregroundStyle(.white.opacity(0.55))
+                        Text(C(g.target.category) + " · " + C(["Low risk", "Medium risk", "High risk"][g.target.risk.rawValue])).font(.caption).foregroundStyle(.white.opacity(0.55))
                     }
                     Spacer()
                     Text(fmt(g.total)).font(.system(size: 14, weight: .medium, design: .rounded)).foregroundStyle(.white.opacity(0.85))

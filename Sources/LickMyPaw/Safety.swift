@@ -17,7 +17,9 @@ enum Safety {
     nonisolated(unsafe) static var automaticRoots: [String] = [
         "/Library/Caches", "/Library/Logs", "/Library/Saved Application State", "/Library/Developer/Xcode/DerivedData",
         "/Library/Developer/CoreSimulator", "/Library/Application Support/CrashReporter", "/.npm", "/.cache", "/.bun/install/cache",
-        "/.cargo/registry", "/.gradle/caches"]
+        "/.cargo/registry", "/.gradle/caches",
+        "/Library/Containers/com.apple.mail/Data/Library/Mail Downloads", "/Library/Application Support/MobileSync/Backup",
+        "/Library/Developer/Xcode/iOS DeviceSupport", "/Library/Developer/Xcode/Archives"]
 
     static func real(_ p: String) -> String { URL(fileURLWithPath: p).resolvingSymlinksInPath().standardizedFileURL.path }
     static func under(_ p: String, _ root: String) -> Bool { p == root || p.hasPrefix(root.hasSuffix("/") ? root : root + "/") }

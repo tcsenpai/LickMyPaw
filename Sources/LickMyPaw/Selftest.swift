@@ -26,6 +26,8 @@ enum SelfTests {
         ("trash", { await TrashSelfTest.run($0) }),
         ("purr", { await PurrSelfTest.run($0) }),
         ("protection", { await ProtectionSelfTest.run($0) }),
+        ("updater", { await UpdaterSelfTest.run($0) }),
+        ("cleanup-ext", { await CleanupExtraSelfTest.run($0) }),
     ]
 
     @MainActor static func main(only: String?) async -> Never {
