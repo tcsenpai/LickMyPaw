@@ -11,7 +11,7 @@ struct SafetyVerdict { let ok: Bool; let reason: String }
 enum Safety {
     static let denyExact: Set<String> = ["/", "/System", "/usr", "/bin", "/sbin", "/etc", "/var", "/private", "/Library", "/Applications",
                                          "/Users", "/Volumes", "/opt", "/cores", "/dev", "/tmp"]
-    static let denyPrefix = ["/System", "/usr/bin", "/usr/sbin", "/usr/lib", "/bin", "/sbin", "/dev", "/cores", "/private/etc", "/private/var/db", "/Library/Apple"]
+    static let denyPrefix = ["/System", "/usr/bin", "/usr/sbin", "/usr/lib", "/bin", "/sbin", "/dev", "/cores", "/private/etc", "/private/var/db", "/Library/Apple", "/etc", "/var/db"]
     static let protectedHomeDirs = ["", "/Library", "/Documents", "/Desktop", "/Downloads", "/Pictures", "/Music", "/Movies", "/Public", "/Applications"]
     /// Allow-roots for .automatic mode (relative to home). Cleanup may append more (e.g. from its target list).
     nonisolated(unsafe) static var automaticRoots: [String] = [

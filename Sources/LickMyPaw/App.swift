@@ -1,14 +1,14 @@
 import SwiftUI
 import AppKit
 
-enum Page { case home, prowl, cleanup, apps, clutter, performance, purr, protection, settings }
+enum Page { case home, prowl, cleanup, apps, clutter, performance, purr, protection, maintenance, privacy, shredder, settings }
 
 /// Cross-module navigation without shared state: Nav.go("cleanup") from any view (used by Purr's "Review" buttons).
 enum Nav {
     static let notification = Notification.Name("LickMyPaw.navigate")
     static func go(_ page: String) { NotificationCenter.default.post(name: notification, object: nil, userInfo: ["page": page]) }
     static func page(named n: String) -> Page? {
-        ["home": .home, "prowl": .prowl, "cleanup": .cleanup, "apps": .apps, "clutter": .clutter, "performance": .performance, "purr": .purr, "protection": .protection, "settings": .settings][n]
+        ["home": .home, "prowl": .prowl, "cleanup": .cleanup, "apps": .apps, "clutter": .clutter, "performance": .performance, "purr": .purr, "protection": .protection, "maintenance": .maintenance, "privacy": .privacy, "shredder": .shredder, "settings": .settings][n]
     }
 }
 
@@ -212,6 +212,9 @@ struct ContentView: View {
                         case .clutter: ClutterView()
                         case .purr: PurrView()
                         case .protection: ProtectionView()
+                        case .maintenance: MaintenanceView()
+                        case .privacy: PrivacyView()
+                        case .shredder: ShredderView()
                         case .performance: PerformanceView()
                         case .settings: SettingsView()
                         }
@@ -243,16 +246,22 @@ struct ContentView: View {
 
     var sidebar: some View {
         VStack(spacing: 10) {
-            navItem("house.fill", "Home", page: .home)
-            navItem("circle.hexagongrid.fill", "Prowl", page: .prowl)
-            navItem("trash.fill", "Cleanup", page: .cleanup)
-            navItem("square.grid.2x2.fill", "Applications", page: .apps)
-            navItem("sparkles", "Purr", page: .purr)
-            navItem("shield.lefthalf.filled", "Protection", page: .protection)
-            navItem("tray.full.fill", "Clutter", page: .clutter)
-            navItem("bolt.fill", "Performance", page: .performance)
+            ScrollView(showsIndicators: false) {   // 11 entries do not fit the minimum window height
+                VStack(spacing: 10) {
+                    navItem("house.fill", "Home", page: .home)
+                    navItem("circle.hexagongrid.fill", "Prowl", page: .prowl)
+                    navItem("trash.fill", "Cleanup", page: .cleanup)
+                    navItem("square.grid.2x2.fill", "Applications", page: .apps)
+                    navItem("sparkles", "Purr", page: .purr)
+                    navItem("shield.lefthalf.filled", "Protection", page: .protection)
+                    navItem("tray.full.fill", "Clutter", page: .clutter)
+                    navItem("bolt.fill", "Performance", page: .performance)
+                    navItem("wrench.and.screwdriver.fill", "Maintenance", page: .maintenance)
+                    navItem("hand.raised.fill", "Privacy", page: .privacy)
+                    navItem("flame.fill", "Shredder", page: .shredder)
+                }
+            }
             Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1).padding(.vertical, 4)
-            Spacer()
             TrashButton()
             navItem("gearshape.fill", "Settings", page: .settings).padding(.bottom, 14)
         }.padding(.top, 52).frame(width: 74).background(Color.black.opacity(0.18)).ignoresSafeArea()
@@ -307,6 +316,9 @@ struct ContentView: View {
                     ModuleCard(icon: "bolt.fill", title: T("Performance"), text: T("Processes, login items, maintenance."), active: true) { m.page = .performance }
                     ModuleCard(icon: "tray.full.fill", title: T("Clutter"), text: T("Find large, old and duplicate files."), active: true) { m.page = .clutter }
                     ModuleCard(icon: "square.grid.2x2.fill", title: T("Applications"), text: T("Uninstall and update apps."), active: true) { m.page = .apps }
+                    ModuleCard(icon: "wrench.and.screwdriver.fill", title: TT("Maintenance", "Maintenance"), text: TT("Flush DNS, reindex Spotlight, verify the disk.", "Maintenance"), active: true) { m.page = .maintenance }
+                    ModuleCard(icon: "hand.raised.fill", title: TT("Privacy", "Privacy"), text: TT("Clear browser traces and recent items.", "Privacy"), active: true) { m.page = .privacy }
+                    ModuleCard(icon: "flame.fill", title: TT("Shredder", "Shredder"), text: TT("Overwrite and delete files for good.", "Shredder"), active: true) { m.page = .shredder }
                 }
             }.foregroundStyle(.white).padding(.horizontal, 30).padding(.vertical, 40)
         }
@@ -510,10 +522,14 @@ struct ContentView: View {
         if let i = pa.firstIndex(of: "--render-page"), i + 2 < pa.count {
             MainActor.assumeIsolated {
                 let inner: AnyView
+                if ["maintenance", "privacy", "shredder"].contains(pa[i + 1]) { Demo.seed() }   // fake data only: never scan or run anything real
                 switch pa[i + 1] {
                 case "cleanup": inner = AnyView(CleanupView())
                 case "apps": inner = AnyView(AppsView())
                 case "settings": inner = AnyView(SettingsView())
+                case "maintenance": inner = AnyView(MaintenanceView())
+                case "privacy": inner = AnyView(PrivacyView())
+                case "shredder": inner = AnyView(ShredderView())
                 default: inner = AnyView(FDAGuideView(onNotNow: {}, onClose: {}))
                 }
                 // Offscreen NSHostingView in a window that is never shown: draws ScrollViews/native controls too (ImageRenderer cannot).

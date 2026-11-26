@@ -73,6 +73,9 @@ xattr -dr com.apple.quarantine /Applications/LickMyPaw.app
 | **Performance** | Startup items with a reversible on/off switch, and processes and memory grouped by app, with a polite quit. |
 | **Purr** | A one-click checkup that reuses the other tools and tells you what needs attention. |
 | **Protection** | Malware scan with the open source [ClamAV](https://www.clamav.net/) engine, plus checks for SIP, Gatekeeper, FileVault, the firewall and XProtect, and an audit of what starts at login. |
+| **Maintenance** | Flush the DNS cache, reindex Spotlight, rebuild the Launch Services database, clear font caches, verify the startup disk (read-only), and list or thin local Time Machine snapshots. Every task shows its exact command first. Admin tasks use the standard macOS password prompt. |
+| **Privacy** | Finds Safari, Chrome, Edge, Brave, Arc and Firefox caches, history, cookies and download lists, plus Recent Items, the Quick Look cache and the download quarantine log. Shell history is opt-in. The browser must be quit first, everything goes to the Trash, and cookies are unchecked by default. Safari needs Full Disk Access. |
+| **Shredder** | Overwrites files with random data and then zeros before deleting them. It cannot be undone. See the limit below. |
 | **Trash button** | Always in the sidebar. Shows the Trash size, opens it, and empties it after asking. |
 | **Menu bar** | A paw icon with free disk, memory pressure, CPU load and the Trash (with Empty Trash), plus shortcuts to Smart Care and the app. It only measures while the menu is open. Can be hidden in Settings. |
 | **Settings** | Language, menu bar and launch at login, optional notifications (disk almost full, big Trash), updates, excluded folders, and a history of actions with Undo. |
@@ -89,6 +92,7 @@ LickMyPaw covers the everyday jobs. It is a young project, so here is what it do
 | Source code | Closed | Open, MIT |
 | Disk map, cleanup, uninstaller, duplicates, startup items | Yes | Yes |
 | Malware scan | Own engine | ClamAV (open source, optional install) |
+| Privacy cleaner, maintenance tasks, file shredder | Yes | Yes |
 | Real-time malware monitor | Yes | No |
 | Signed and notarized builds | Yes | Not yet |
 | Menu bar app | Yes | Yes |
@@ -145,9 +149,9 @@ The suites run on throwaway folders and a fake home. They never touch your files
 
 ## Roadmap
 
-Planned: an on-device assistant built on Apple's Foundation Models with a small read-only toolbox that can only propose actions, a privacy cleaner, maintenance scripts, a file shredder, Developer ID signing and notarization, and Sparkle based updates once the builds are signed (the built-in updater checks GitHub Releases and verifies the SHA-256 until then).
+Planned: an on-device assistant built on Apple's Foundation Models with a small read-only toolbox that can only propose actions, Developer ID signing and notarization, and Sparkle based updates once the builds are signed (the built-in updater checks GitHub Releases and verifies the SHA-256 until then).
 
-Known limits: builds are Apple Silicon only, hard links and APFS clones are counted approximately, and undoing a removal does not put files back into lists you already scanned until you rescan.
+Known limits: the Shredder overwrites a file once with random data and once with zeros, but on APFS (copy-on-write, snapshots) and on SSDs (wear levelling) that does not guarantee every copy of the data is gone. It stops casual recovery; for real protection use FileVault. Builds are Apple Silicon only, hard links and APFS clones are counted approximately, and undoing a removal does not put files back into lists you already scanned until you rescan.
 
 ## Translations
 
