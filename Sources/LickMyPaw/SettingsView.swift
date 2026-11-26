@@ -56,11 +56,11 @@ struct SettingsView: View {
                             }
                             Spacer()
                             Text(fmt(e.size)).foregroundStyle(.white.opacity(0.8))
-                            Text(e.undone ? TT("Restored", S) : TT("Moved to Trash", S)).font(.system(size: 12)).foregroundStyle(.white.opacity(0.6))
+                            Text(e.op == "shred" ? TT("Shredded", S) : e.undone ? TT("Restored", S) : TT("Moved to Trash", S)).font(.system(size: 12)).foregroundStyle(.white.opacity(0.6))
                             Button(TT("Undo", S)) {
                                 do { try Engine.undo(e) } catch { self.err = error.localizedDescription }
                                 reload()
-                            }.buttonStyle(SoftButton()).disabled(e.undone)
+                            }.buttonStyle(SoftButton()).disabled(e.undone || e.op == "shred")
                         }.padding(8).glass(12)
                     }
                 }

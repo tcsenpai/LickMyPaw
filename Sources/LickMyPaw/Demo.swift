@@ -112,6 +112,23 @@ enum Demo {
                      SecurityCheck(id: "xp", title: TT("XProtect (Apple built-in malware definitions)", S), posture: .good, detail: TTF("Version %@", S, "5300"))]
         let det = Detection(path: user + "/Downloads/eicar-test-file.com", signature: "Win.Test.EICAR_HDB-1", size: 68)
         pm.detections = [det]; pm.found = 1; pm.scannedAt = Date(); pm.lastReport = ScanReport(detections: [det], duration: 41.6); pm.elapsed = 41.6
+
+        // Maintenance / Privacy / Shredder
+        let mm = MaintenanceModel.shared
+        mm.results = [.flushDNS: MaintResult(ok: true, output: "", date: Date()),
+                      .verifyDisk: MaintResult(ok: true, output: "Started file system verification on disk3s1s1 (Macintosh HD)\nThe volume appears to be OK.\nFile system check exit code is 0.", date: Date()),
+                      .listSnapshots: MaintResult(ok: true, output: "Snapshots for disk /:\ncom.apple.TimeMachine.2026-11-24-081502.local\ncom.apple.TimeMachine.2026-11-25-091830.local", date: Date())]
+        func pi(_ b: String, _ bid: String?, _ c: PrivCat, _ mb: Int64, _ r: PrivRisk) -> PrivacyItem { PrivacyItem(browser: b, bundleID: bid, cat: c, paths: [user + "/Library/demo-" + c.rawValue], size: mb * 1_000_000, risk: r) }
+        let pv = PrivacyModel.shared
+        pv.items = [pi("Safari", "com.apple.Safari", .cache, 410, .low), pi("Safari", "com.apple.Safari", .history, 38, .low), pi("Safari", "com.apple.Safari", .cookies, 6, .medium),
+                    pi("Chrome", "com.google.Chrome", .cache, 1240, .low), pi("Chrome", "com.google.Chrome", .history, 64, .low), pi("Chrome", "com.google.Chrome", .cookies, 12, .medium),
+                    pi("Firefox", "org.mozilla.firefox", .cache, 320, .low), pi("Firefox", "org.mozilla.firefox", .history, 22, .high),
+                    pi("System", nil, .recent, 1, .low), pi("System", nil, .quicklook, 180, .low), pi("System", nil, .quarantine, 2, .low)]
+        pv.selected = Set(pv.items.filter(\.defaultOn).map(\.id)); pv.scannedAt = Date(); pv.fda = .granted
+        pv.runningIDs = ["com.google.Chrome"]
+        let sh = ShredderModel.shared
+        sh.entries = [ShredEntry(path: user + "/Documents/old-passwords.txt", size: 12_000, refusal: nil), ShredEntry(path: user + "/Downloads/bank-statement-2023.pdf", size: 2_400_000, refusal: nil),
+                      ShredEntry(path: user + "/Documents/Contracts", size: 18_000_000, refusal: nil), ShredEntry(path: "/System/Library/CoreServices", size: 0, refusal: "protected system location (/System)")]
     }
 
     /// Called from ContentView.onAppear in demo mode.
@@ -125,7 +142,8 @@ enum Demo {
         try? FileManager.default.createDirectory(atPath: out, withIntermediateDirectories: true)
         let app = NSApplication.shared; app.setActivationPolicy(.prohibited)
         let pages: [(String, Page, Bool)] = [("01-home", .home, false), ("02-prowl", .prowl, false), ("03-cleanup", .cleanup, false), ("04-applications", .apps, false), ("05-clutter", .clutter, false),
-                                             ("06-performance", .performance, true), ("07-purr", .purr, false), ("08-protection", .protection, false), ("09-settings", .settings, false)]
+                                             ("06-performance", .performance, true), ("07-purr", .purr, false), ("08-protection", .protection, false), ("09-settings", .settings, false),
+                                             ("10-maintenance", .maintenance, false), ("11-privacy", .privacy, false), ("12-shredder", .shredder, false)]
         let waits = Int(ProcessInfo.processInfo.environment["LMP_RENDER_WAIT"] ?? "") ?? 25
         for (name, pg, perf) in pages {
             page = pg; perfProcesses = perf
