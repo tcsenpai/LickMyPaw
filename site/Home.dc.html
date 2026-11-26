@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>LickMyPaw: the free, open source Mac cleaner</title>
+<meta name="description" content="LickMyPaw cleans up your Mac: disk map, caches, uninstaller, duplicates, malware scan and more. Free, MIT licensed, no telemetry.">
+<link rel="icon" href="assets/AppIcon-1024.png">
+<link rel="stylesheet" href="_ds/nocturne-1cd76810-4672-49a4-a748-310c574c7b5d/styles.css">
+<script src="_ds/nocturne-1cd76810-4672-49a4-a748-310c574c7b5d/_ds_bundle.js"></script>
+<style>
+html { scroll-behavior: smooth; }
+body { margin: 0; text-wrap: pretty; overflow-x: hidden;
+  background: radial-gradient(1400px 900px at 78% -200px, color-mix(in srgb, var(--color-accent-900) 85%, transparent), transparent 60%), radial-gradient(1100px 800px at -10% 100%, color-mix(in srgb, black 30%, transparent), transparent 55%), var(--color-bg); }
+a { color: var(--color-accent-300); }
+a:hover { color: var(--color-accent-200); }
+@keyframes lmp-float { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-16px) rotate(1.5deg); } }
+@keyframes lmp-glow { 0%, 100% { opacity: .55; transform: scale(.94); } 50% { opacity: .95; transform: scale(1.04); } }
+@keyframes lmp-step { 0% { opacity: 0; transform: var(--t) scale(.5); } 6% { opacity: 1; transform: var(--t) scale(1); } 55% { opacity: 1; transform: var(--t) scale(1); } 80%, 100% { opacity: 0; transform: var(--t) scale(1); } }
+@keyframes lmp-pop { 0% { opacity: 0; transform: translate(-50%, 0) scale(.4) rotate(0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), -170px) scale(1) rotate(var(--r)); } }
+@keyframes lmp-squish { 0% { transform: scale(1); } 25% { transform: scale(.9, .84); } 55% { transform: scale(1.06, 1.03); } 100% { transform: scale(1); } }
+@keyframes lmp-caret { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+
+<nav class="nav" style="position: sticky; top: 0; z-index: 20; flex-wrap: wrap; padding-inline: max(clamp(20px, 5vw, 72px), calc((100% - 1200px) / 2 + clamp(20px, 5vw, 72px))); background: color-mix(in srgb, var(--color-bg) 72%, transparent); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);">
+  <a href="Home.dc.html" class="nav-brand" style="display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: var(--color-text);"><img src="assets/AppIcon-1024.png" alt="" style="width: 26px; height: 26px;">LickMyPaw</a>
+  <a href="#features">Features</a>
+  <a href="#compare">Compare</a>
+  <a href="#cli">CLI</a>
+  <a href="News.dc.html">News</a>
+  <a class="btn btn-primary" href="#download" style="text-decoration: none;">Download</a>
+</nav>
+
+<section style="position: relative; overflow: hidden;">
+  <div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none;">{{ pawTrail }}</div>
+  <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: clamp(48px, 8vw, 104px) clamp(20px, 5vw, 72px) 40px; display: flex; flex-wrap: wrap; align-items: center; gap: 48px clamp(32px, 5vw, 80px);">
+    <div style="flex: 1.25 1 440px; min-width: 0;">
+      <div style="display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: 28px;">
+        <span class="tag tag-accent">Free</span>
+        <span class="tag tag-neutral">Open source</span>
+        <span class="tag tag-neutral">No telemetry</span>
+      </div>
+      <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(44px, 6.6vw, 88px); line-height: 1.04; letter-spacing: -0.025em; margin: 0 0 0 -0.06em; color: var(--color-text);">
+        <span style="display: block;">A clean Mac,</span>
+        <span style="display: block; background: linear-gradient(100deg, var(--color-accent-200), var(--color-accent) 60%, var(--color-accent-300)); -webkit-background-clip: text; background-clip: text; color: transparent;">licked into shape.</span>
+      </h1>
+      <p style="font-size: 18px; line-height: 29px; max-width: 52ch; margin: 28px 0 0; color: color-mix(in srgb, var(--color-text) 86%, transparent);">LickMyPaw finds the junk, maps your disk, uninstalls apps with their leftovers and checks your system. It is the free, open source alternative to CleanMyMac, and it never sends a byte about you.</p>
+      <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; margin-top: 32px; align-items: center;">
+        <a class="btn btn-primary" href="https://github.com/tcsenpai/LickMyPaw/releases/latest" style="text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-3); padding: 12px 20px; font-size: 15px;">
+          <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"></path></svg>
+          Download for macOS
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/tcsenpai/LickMyPaw" style="text-decoration: none; padding: 12px 20px; font-size: 15px;">Read the source</a>
+      </div>
+      <p style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 60%, transparent); margin: 22px 0 0;">Apple Silicon · macOS 13+ · MIT licensed</p>
+    </div>
+    <div style="flex: 1 1 300px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+      {{ heroIcon }}
+      <p style="font-size: 13px; margin: 0; color: color-mix(in srgb, var(--color-text) 55%, transparent);">Go on, boop the paw.</p>
+    </div>
+  </div>
+</section>
+
+<div style="max-width: 1280px; margin: 0 auto; padding: 24px clamp(20px, 5vw, 72px) 96px; position: relative;">
+  <div aria-hidden="true" style="position: absolute; left: 10%; right: 10%; top: 10%; bottom: 10%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-section-glow) 80%, transparent), transparent); filter: blur(40px);"></div>
+  <div ref="{{ shotRef }}" style="position: relative; transform-origin: 50% 0; will-change: transform; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); background: var(--color-surface);">
+    <div style="height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 14px; background: var(--color-neutral-900);">
+      <span style="width: 11px; height: 11px; border-radius: 50%; background: var(--color-neutral-600);"></span>
+      <span style="width: 11px; height: 11px; border-radius: 50%; background: var(--color-neutral-600);"></span>
+      <span style="width: 11px; height: 11px; border-radius: 50%; background: var(--color-neutral-600);"></span>
+    </div>
+    <img src="{{ heroSrc }}" alt="LickMyPaw app window" style="display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900;">
+  </div>
+  <p style="position: relative; font-size: 13px; margin: 16px 0 0; text-align: center; color: color-mix(in srgb, var(--color-text) 55%, transparent);">Screenshots use made-up demo data.</p>
+</div>
+
+<section aria-label="Principles" style="background: radial-gradient(900px 420px at 85% -40%, color-mix(in srgb, var(--color-section-glow) 70%, transparent), transparent 64%), var(--color-section); padding: 64px 0;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 72px); display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 40px 28px;">
+    <div data-reveal=""><p style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(36px, 3.6vw, 52px); line-height: 1; margin: 0; color: var(--color-text);">€0</p><p style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 14px 0 0; color: color-mix(in srgb, var(--color-text) 66%, transparent);">No subscription, no account</p></div>
+    <div data-reveal=""><p style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(36px, 3.6vw, 52px); line-height: 1; margin: 0; color: var(--color-text);">0 bytes</p><p style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 14px 0 0; color: color-mix(in srgb, var(--color-text) 66%, transparent);">Of telemetry</p></div>
+    <div data-reveal=""><p style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(36px, 3.6vw, 52px); line-height: 1; margin: 0; color: var(--color-text);">Trash first</p><p style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 14px 0 0; color: color-mix(in srgb, var(--color-text) 66%, transparent);">Every removal can be undone</p></div>
+    <div data-reveal=""><p style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(36px, 3.6vw, 52px); line-height: 1; margin: 0; color: var(--color-text);">MIT</p><p style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 14px 0 0; color: color-mix(in srgb, var(--color-text) 66%, transparent);">Read, fork, change every line</p></div>
+  </div>
+</section>
+
+<main id="features" style="max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 72px);">
+
+  <section data-reveal="" style="padding: 112px 0 48px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+    <img src="assets/paw.svg" alt="" style="width: 44px; height: auto; margin-bottom: 24px;">
+    <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(36px, 4.8vw, 64px); line-height: 1.06; letter-spacing: -0.02em; margin: 0; color: var(--color-text);">One click. One purr.</h2>
+    <p style="font-size: 18px; line-height: 29px; max-width: 56ch; margin: 20px 0 0; color: color-mix(in srgb, var(--color-text) 80%, transparent);">Purr is a checkup that runs the other tools for you and tells you what needs attention. You still decide what goes.</p>
+  </section>
+  <div data-reveal="" style="position: relative; padding-bottom: 72px;">
+    <div aria-hidden="true" style="position: absolute; inset: 8% 14% 20%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent-700) 70%, transparent), transparent); filter: blur(40px);"></div>
+    <img src="assets/screenshots/07-purr.png" alt="Purr, the one-click checkup" style="position: relative; display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+  </div>
+
+  <section data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px clamp(32px, 5vw, 80px); padding: 72px 0;">
+    <div style="flex: 1 1 340px; max-width: 440px;">
+      <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 20px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Cleanup</p>
+      <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.015em; margin: 0; color: var(--color-text);">Gigabytes of junk out. Nothing lost.</h2>
+      <p style="font-size: 16px; line-height: 26px; margin: 16px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">Caches, logs, crash reports and developer leftovers, sorted by how safe they are to clear.</p>
+      <ul style="list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{ f.cleanup }}" as="b" hint-placeholder-count="4"><li style="display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 23px; color: color-mix(in srgb, var(--color-text) 84%, transparent);"><svg width="16" height="16" viewBox="0 0 256 256" fill="var(--color-accent)" style="flex: none; margin-top: 4px;" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>{{ b }}</li></sc-for>
+      </ul>
+    </div>
+    <div style="flex: 1.6 1 460px; min-width: 0; position: relative;">
+      <div aria-hidden="true" style="position: absolute; inset: 10%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent-700) 60%, transparent), transparent); filter: blur(36px);"></div>
+      <img src="assets/screenshots/03-cleanup.png" alt="Cleanup" style="position: relative; display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+    </div>
+  </section>
+
+  <section data-reveal="" style="display: flex; flex-wrap: wrap-reverse; flex-direction: row-reverse; align-items: center; gap: 40px clamp(32px, 5vw, 80px); padding: 72px 0;">
+    <div style="flex: 1 1 340px; max-width: 440px;">
+      <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 20px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Prowl and Clutter</p>
+      <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.015em; margin: 0; color: var(--color-text);">See what eats your disk.</h2>
+      <p style="font-size: 16px; line-height: 26px; margin: 16px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">A bubble map you can drill into, and a hunt for large, old and duplicate files.</p>
+      <ul style="list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{ f.prowl }}" as="b" hint-placeholder-count="3"><li style="display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 23px; color: color-mix(in srgb, var(--color-text) 84%, transparent);"><svg width="16" height="16" viewBox="0 0 256 256" fill="var(--color-accent)" style="flex: none; margin-top: 4px;" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>{{ b }}</li></sc-for>
+      </ul>
+    </div>
+    <div style="flex: 1.6 1 460px; min-width: 0; position: relative;">
+      <div aria-hidden="true" style="position: absolute; inset: 10%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent-700) 60%, transparent), transparent); filter: blur(36px);"></div>
+      <img src="assets/screenshots/05-clutter.png" alt="Clutter" style="position: relative; display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+    </div>
+  </section>
+
+  <section data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px clamp(32px, 5vw, 80px); padding: 72px 0;">
+    <div style="flex: 1 1 340px; max-width: 440px;">
+      <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 20px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Applications</p>
+      <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.015em; margin: 0; color: var(--color-text);">Uninstall the whole app, not just the icon.</h2>
+      <p style="font-size: 16px; line-height: 26px; margin: 16px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">Apps scatter support files across your Library. LickMyPaw finds them and removes them together.</p>
+      <ul style="list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{ f.apps }}" as="b" hint-placeholder-count="3"><li style="display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 23px; color: color-mix(in srgb, var(--color-text) 84%, transparent);"><svg width="16" height="16" viewBox="0 0 256 256" fill="var(--color-accent)" style="flex: none; margin-top: 4px;" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>{{ b }}</li></sc-for>
+      </ul>
+    </div>
+    <div style="flex: 1.6 1 460px; min-width: 0; position: relative;">
+      <div aria-hidden="true" style="position: absolute; inset: 10%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent-700) 60%, transparent), transparent); filter: blur(36px);"></div>
+      <img src="assets/screenshots/04-applications.png" alt="Applications" style="position: relative; display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+    </div>
+  </section>
+
+  <section data-reveal="" style="display: flex; flex-wrap: wrap-reverse; flex-direction: row-reverse; align-items: center; gap: 40px clamp(32px, 5vw, 80px); padding: 72px 0;">
+    <div style="flex: 1 1 340px; max-width: 440px;">
+      <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 20px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Protection</p>
+      <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.015em; margin: 0; color: var(--color-text);">A second opinion on your Mac's defenses.</h2>
+      <p style="font-size: 16px; line-height: 26px; margin: 16px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">Scan downloads with an open source engine and check that macOS protections are actually switched on.</p>
+      <ul style="list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{ f.protection }}" as="b" hint-placeholder-count="3"><li style="display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 23px; color: color-mix(in srgb, var(--color-text) 84%, transparent);"><svg width="16" height="16" viewBox="0 0 256 256" fill="var(--color-accent)" style="flex: none; margin-top: 4px;" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>{{ b }}</li></sc-for>
+      </ul>
+    </div>
+    <div style="flex: 1.6 1 460px; min-width: 0; position: relative;">
+      <div aria-hidden="true" style="position: absolute; inset: 10%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent-700) 60%, transparent), transparent); filter: blur(36px);"></div>
+      <img src="assets/screenshots/08-protection.png" alt="Protection" style="position: relative; display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+    </div>
+  </section>
+
+  <section data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px clamp(32px, 5vw, 80px); padding: 72px 0;">
+    <div style="flex: 1 1 340px; max-width: 440px;">
+      <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 20px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Performance and Maintenance</p>
+      <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.015em; margin: 0; color: var(--color-text);">Quiet the startup crowd. Tune the rest.</h2>
+      <p style="font-size: 16px; line-height: 26px; margin: 16px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">Control what launches, see what uses memory, and run the housekeeping macOS hides in Terminal.</p>
+      <ul style="list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{ f.perf }}" as="b" hint-placeholder-count="4"><li style="display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 23px; color: color-mix(in srgb, var(--color-text) 84%, transparent);"><svg width="16" height="16" viewBox="0 0 256 256" fill="var(--color-accent)" style="flex: none; margin-top: 4px;" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>{{ b }}</li></sc-for>
+      </ul>
+    </div>
+    <div style="flex: 1.6 1 460px; min-width: 0; position: relative;">
+      <div aria-hidden="true" style="position: absolute; inset: 10%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent-700) 60%, transparent), transparent); filter: blur(36px);"></div>
+      <img src="assets/screenshots/06-performance.png" alt="Performance" style="position: relative; display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+    </div>
+  </section>
+
+  <section data-reveal="" style="display: flex; flex-wrap: wrap-reverse; flex-direction: row-reverse; align-items: center; gap: 40px clamp(32px, 5vw, 80px); padding: 72px 0;">
+    <div style="flex: 1 1 340px; max-width: 440px;">
+      <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 20px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Privacy and Shredder</p>
+      <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.015em; margin: 0; color: var(--color-text);">Cover your tracks. Bury the evidence.</h2>
+      <p style="font-size: 16px; line-height: 26px; margin: 16px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">Browser traces and recents go to the Trash. Files you really want gone get overwritten first.</p>
+      <ul style="list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{ f.privacy }}" as="b" hint-placeholder-count="3"><li style="display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 23px; color: color-mix(in srgb, var(--color-text) 84%, transparent);"><svg width="16" height="16" viewBox="0 0 256 256" fill="var(--color-accent)" style="flex: none; margin-top: 4px;" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>{{ b }}</li></sc-for>
+      </ul>
+    </div>
+    <div style="flex: 1.6 1 460px; min-width: 0; position: relative;">
+      <div aria-hidden="true" style="position: absolute; inset: 10%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent-700) 60%, transparent), transparent); filter: blur(36px);"></div>
+      <img src="assets/screenshots/11-privacy.png" alt="Privacy" style="position: relative; display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+    </div>
+  </section>
+
+  <section data-reveal="" style="padding: 72px 0 96px;">
+    <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(24px, 2.6vw, 32px); line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 32px; color: var(--color-text);">And the small things that make it feel at home.</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 20px;">
+      <sc-for list="{{ extras }}" as="x" hint-placeholder-count="4">
+        <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+          <img src="assets/paw.svg" alt="" style="width: 20px; height: auto; opacity: .9;">
+          <h3 class="card-title" style="margin: 0;">{{ x.title }}</h3>
+          <p class="card-body" style="margin: 0;">{{ x.copy }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section id="why" style="padding: 48px 0 72px;">
+    <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 24px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Why LickMyPaw</p>
+    <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.15; letter-spacing: -0.015em; margin: 0 0 32px; max-width: 24ch; color: var(--color-text);">The good Mac cleaners are paid, closed, and want deep access to your files.</h2>
+    <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="5">
+      <div data-reveal="" style="display: flex; flex-wrap: wrap; gap: 12px clamp(24px, 4vw, 72px); align-items: baseline; padding: 32px 0; background: linear-gradient(to right, transparent, var(--color-neutral-700) 48px calc(100% - 48px), transparent) top / 100% 1px no-repeat;">
+        <p style="flex: 0 0 64px; font-size: 15px; color: var(--color-accent); font-feature-settings: 'tnum' 1; margin: 0;">{{ r.n }}</p>
+        <h3 style="flex: 1 1 260px; max-width: 380px; font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 24px; line-height: 1.2; letter-spacing: -0.01em; margin: 0; color: var(--color-text);">{{ r.title }}</h3>
+        <p style="flex: 2 1 320px; font-size: 15.5px; line-height: 26px; margin: 0; max-width: 56ch; color: color-mix(in srgb, var(--color-text) 78%, transparent);">{{ r.copy }}</p>
+      </div>
+    </sc-for>
+  </section>
+
+  <sc-if value="{{ showCompare }}" hint-placeholder-val="{{ true }}">
+    <section id="compare" data-reveal="" style="padding: 72px 0 96px;">
+      <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 24px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Compare</p>
+      <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.15; letter-spacing: -0.015em; margin: 0 0 16px; color: var(--color-text);">Honest about what it does, and what it doesn't yet.</h2>
+      <p style="font-size: 16px; line-height: 26px; margin: 0 0 32px; max-width: 64ch; color: color-mix(in srgb, var(--color-text) 78%, transparent);">LickMyPaw covers the everyday jobs. It is a young project, so here is how it compares with CleanMyMac today.</p>
+      <div style="overflow-x: auto;">
+        <table class="table" style="width: 100%; min-width: 560px;">
+          <thead><tr><th style="text-align: left;"></th><th style="text-align: left;">CleanMyMac</th><th style="text-align: left; color: var(--color-accent);">LickMyPaw</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ compare }}" as="c" hint-placeholder-count="10">
+              <tr><td style="color: color-mix(in srgb, var(--color-text) 78%, transparent);">{{ c.k }}</td><td>{{ c.them }}</td><td style="color: var(--color-text);">{{ c.us }}</td></tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 13px; line-height: 20px; margin: 20px 0 0; max-width: 80ch; color: color-mix(in srgb, var(--color-text) 60%, transparent);">CleanMyMac is a trademark of MacPaw. LickMyPaw is an independent project and is not affiliated with or endorsed by MacPaw. The malware scan relies on ClamAV signatures and is not a replacement for a full antivirus.</p>
+    </section>
+  </sc-if>
+
+  <section id="cli" data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px clamp(32px, 5vw, 80px); padding: 72px 0 96px;">
+    <div style="flex: 1 1 320px; max-width: 420px;">
+      <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 20px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>Command line</p>
+      <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.015em; margin: 0; color: var(--color-text);">Scriptable. Agent-friendly.</h2>
+      <p style="font-size: 16px; line-height: 26px; margin: 16px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">The app binary doubles as a command line tool with JSON output. A ready-made skill lets AI coding agents like Claude Code use it safely: deletes are dry runs until you add <code>--yes</code>.</p>
+      <a href="https://github.com/tcsenpai/LickMyPaw/blob/main/skill/SKILL.md" style="display: inline-block; margin-top: 20px; font-size: 15px;">Read the agent skill →</a>
+    </div>
+    <div style="flex: 1.4 1 440px; min-width: 0;">{{ terminal }}</div>
+  </section>
+</main>
+
+<section id="download" style="position: relative; overflow: hidden; background: radial-gradient(900px 520px at 50% 0%, color-mix(in srgb, var(--color-section-glow) 80%, transparent), transparent 70%), var(--color-section); padding: 96px 0;">
+  <div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none; opacity: .7;">{{ pawTrail2 }}</div>
+  <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 72px); display: flex; flex-direction: column; align-items: center; text-align: center;">
+    <img src="assets/AppIcon-1024.png" alt="LickMyPaw app icon" style="width: 132px; height: 132px; filter: drop-shadow(0 18px 40px color-mix(in srgb, var(--color-accent) 45%, transparent));">
+    <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(36px, 4.8vw, 60px); line-height: 1.06; letter-spacing: -0.02em; margin: 24px 0 0; color: var(--color-text);">Free. For good.</h2>
+    <p style="font-size: 17px; line-height: 28px; max-width: 52ch; margin: 16px 0 0; color: color-mix(in srgb, var(--color-text) 82%, transparent);">Download the DMG, drag the paw to Applications, done. Or build it yourself and compare.</p>
+    <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; justify-content: center; margin-top: 28px;">
+      <a class="btn btn-primary" href="https://github.com/tcsenpai/LickMyPaw/releases/latest" style="text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-3); padding: 12px 22px; font-size: 15px; color: var(--color-text); border-color: var(--color-accent-300);">
+        <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"></path></svg>
+        Download latest release
+      </a>
+      <a class="btn btn-ghost" href="https://github.com/tcsenpai/LickMyPaw#build-from-source" style="text-decoration: none; padding: 12px 22px; font-size: 15px; color: var(--color-text);">Build from source</a>
+    </div>
+    <p style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 66%, transparent); margin: 22px 0 0;">Apple Silicon · macOS 13 or later · DMG or zipped app · SHA-256 checksums</p>
+    <div style="margin-top: 40px; max-width: 640px; width: 100%; text-align: left; padding: 20px 22px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-bg) 55%, transparent); box-shadow: var(--shadow-sm);">
+      <p style="font-size: 14px; line-height: 22px; margin: 0 0 12px; color: color-mix(in srgb, var(--color-text) 86%, transparent);">Builds are ad-hoc signed and not notarized yet, so Gatekeeper warns on first launch. Right-click the app and choose Open, or clear the quarantine flag once:</p>
+      <pre style="margin: 0; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--color-bg); overflow-x: auto; font: 13px/20px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-text);">xattr -dr com.apple.quarantine /Applications/LickMyPaw.app</pre>
+    </div>
+  </div>
+</section>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 72px);">
+  <section id="news" style="padding: 96px 0 72px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 32px;">
+      <div>
+        <p style="display: flex; align-items: center; gap: var(--space-4); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 20px;"><span style="width: 32px; height: 1px; background: var(--color-accent);"></span>News</p>
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(28px, 3.2vw, 40px); line-height: 1.15; letter-spacing: -0.015em; margin: 0; color: var(--color-text);">Fresh from the litter box.</h2>
+      </div>
+      <a class="btn btn-ghost" href="News.dc.html" style="text-decoration: none;">All news and changelog →</a>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px;">
+      <sc-for list="{{ latest }}" as="e" hint-placeholder-count="2">
+        <a href="News.dc.html#{{ e.id }}" class="card" style="display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--color-text); transition: box-shadow .2s, transform .2s;" style-hover="box-shadow: var(--shadow-md); transform: translateY(-2px);">
+          <div style="display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
+            <span class="tag {{ e.tagClass }}">{{ e.typeLabel }}</span>
+            <span style="font-size: 13px; color: color-mix(in srgb, var(--color-text) 64%, transparent); font-feature-settings: 'tnum' 1;">{{ e.dateLabel }}</span>
+          </div>
+          <h3 class="card-title" style="margin: 0;">{{ e.heading }}</h3>
+          <p class="card-body" style="margin: 0;">{{ e.summary }}</p>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <footer style="padding: 40px 0 56px; display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: center; font-size: 13px; line-height: 20px; color: color-mix(in srgb, var(--color-text) 62%, transparent); background: linear-gradient(to right, transparent, var(--color-divider) 48px calc(100% - 48px), transparent) top / 100% 1px no-repeat;">
+    <span style="display: flex; align-items: center; gap: 10px;"><img src="assets/AppIcon-1024.png" alt="" style="width: 22px; height: 22px;">LickMyPaw · MIT licensed · by <a href="https://github.com/tcsenpai">tcsenpai</a></span>
+    <span>Paw based on “Black Cat Paw” by lesnivila (<a href="https://openclipart.org/detail/28992/black-cat-paw">CC0</a>). Malware scanning by <a href="https://www.clamav.net/">ClamAV</a>.</span>
+  </footer>
+</main>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;heroScreenshot&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;prowl&quot;,&quot;home&quot;,&quot;cleanup&quot;,&quot;purr&quot;],&quot;default&quot;:&quot;prowl&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;motion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showCompare&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;newsCount&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:1,&quot;max&quot;:6,&quot;tsType&quot;:&quot;number&quot;}}">
+// Copy that changes often lives in the arrays below and in content/news.json.
+const FEATURES = {
+  cleanup: [
+    'Developer caches: Xcode DerivedData, npm, bun, cargo, gradle, pip, uv, Homebrew',
+    'iOS backups, Simulator devices and Mail downloads start unchecked',
+    'Caches of running apps are skipped',
+    'Everything goes to the Trash first, with Undo',
+  ],
+  prowl: [
+    'Scan a folder or the whole disk and drill down; hard links counted once',
+    'Duplicates matched by size, then a partial hash, then SHA-256',
+    'One copy of every duplicate group is always kept',
+  ],
+  apps: [
+    'Finds the files every app leaves behind',
+    'Select several apps and uninstall them in one go',
+    'Update check across Sparkle feeds, the App Store and Homebrew casks, only when you press the button',
+  ],
+  protection: [
+    'Malware scan with the open source ClamAV engine (optional install)',
+    'Checks SIP, Gatekeeper, FileVault, the firewall and XProtect',
+    'Audit of everything that starts at login',
+  ],
+  perf: [
+    'Startup items with a reversible on/off switch',
+    'Processes and memory grouped by app, with a polite quit',
+    'Flush DNS, reindex Spotlight, rebuild Launch Services, thin Time Machine snapshots',
+    'Every maintenance task shows its exact command first',
+  ],
+  privacy: [
+    'Safari, Chrome, Edge, Brave, Arc and Firefox caches, history and download lists',
+    'Cookies unchecked by default; shell history is opt-in',
+    'Shredder overwrites with random data, then zeros, before deleting',
+  ],
+};
+
+const EXTRAS = [
+  ['Menu bar paw', 'Free disk, memory pressure, CPU load and the Trash. It only measures while the menu is open.'],
+  ['Trash button', 'Always in the sidebar: see its size, open it, empty it after asking.'],
+  ['History and Undo', 'Every action is logged in Settings, and removals can be put back.'],
+  ['Speaks your language', 'English, Italian, French and Spanish, following your macOS language.'],
+];
+
+const REASONS = [
+  ['Free and MIT licensed', 'Use it, fork it, change it. No subscription and no account.'],
+  ['Nothing is deleted for good', 'Everything LickMyPaw removes goes to the Trash first, and every action is logged so you can undo it.'],
+  ['One safety gate', 'Every delete goes through the same check, which refuses system locations and any folder you excluded.'],
+  ['No telemetry', 'The app sends no identifiers. Its only network calls are the update check, which you can turn off, an on-demand app update check, and ClamAV signatures if you install it.'],
+  ['Scriptable', 'The same binary has a JSON command line, plus a ready-made skill so AI coding agents can use it too.'],
+];
+
+const COMPARE = [
+  ['Price', 'Subscription or paid license', 'Free'],
+  ['Source code', 'Closed', 'Open, MIT'],
+  ['Disk map, cleanup, uninstaller, duplicates, startup items', 'Yes', 'Yes'],
+  ['Malware scan', 'Own engine', 'ClamAV (optional install)'],
+  ['Privacy cleaner, maintenance, file shredder', 'Yes', 'Yes'],
+  ['Real-time malware monitor', 'Yes', 'No'],
+  ['Signed and notarized builds', 'Yes', 'Not yet'],
+  ['Menu bar app', 'Yes', 'Yes'],
+  ['Automatic updates', 'Yes', 'GitHub Releases check, SHA-256 verified'],
+  ['Command line for scripts', 'No', 'Yes, JSON output'],
+  ['Telemetry', 'Depends on settings', 'None'],
+];
+
+const TERMINAL = [
+  ['cmd', 'lickmypaw scan ~ --depth 2 --top 15 --min 100M'],
+  ['out', '# size tree, biggest first'],
+  ['cmd', 'lickmypaw big ~/Library --files --limit 30'],
+  ['out', '# the largest files'],
+  ['cmd', 'lickmypaw trash ~/Downloads/old.dmg'],
+  ['out', '# dry run: add --yes to move it to the Trash'],
+  ['cmd', 'lickmypaw update --check'],
+  ['out', '# current vs latest release'],
+];
+
+const HERO = { prowl: '02-prowl', home: '01-home', cleanup: '03-cleanup', purr: '07-purr' };
+const h = React.createElement;
+
+function Paw({ size = 24, color = 'currentColor', style }) {
+  return h('svg', { width: size, height: size * 670 / 820, viewBox: '110 0 820 670', fill: color, style, 'aria-hidden': true },
+    h('ellipse', { cx: 218.6, cy: 295.5, rx: 87.1, ry: 108.6 }), h('ellipse', { cx: 377.1, cy: 121.2, rx: 87.1, ry: 108.6 }),
+    h('ellipse', { cx: 625.7, cy: 121.2, rx: 87.1, ry: 108.6 }), h('ellipse', { cx: 820, cy: 241.2, rx: 87.1, ry: 108.6 }),
+    h('path', { d: 'M292,395 A252.9,222.9 0 0 1 780,395 L657,631 L415,631 Z', stroke: color, strokeWidth: 40, strokeLinejoin: 'round' }));
+}
+
+// A cat walking diagonally across the section, step by step.
+function PawTrail({ motion, from = [4, 92], to = [96, 8], steps = 14, color }) {
+  const dx = to[0] - from[0], dy = to[1] - from[1];
+  const ang = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+  const len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len;
+  const dur = steps * 0.42 + 3;
+  return h('div', { style: { position: 'absolute', inset: 0 } }, Array.from({ length: steps }, (_, i) => {
+    const t = i / (steps - 1), side = i % 2 ? 1 : -1;
+    const x = from[0] + dx * t + nx * side * 1.6, y = from[1] + dy * t + ny * side * 2.4;
+    const tr = `translate(-50%, -50%) rotate(${ang}deg)`;
+    return h('div', { key: i, style: { position: 'absolute', left: x + '%', top: y + '%', '--t': tr, transform: tr,
+      opacity: motion ? 0 : 0.6, animation: motion ? `lmp-step ${dur}s ${i * 0.42}s infinite` : 'none' } },
+      h(Paw, { size: 26, color: color || 'color-mix(in srgb, var(--color-accent) 22%, transparent)' }));
+  }));
+}
+
+function HeroIcon({ motion }) {
+  const [tilt, setTilt] = React.useState([0, 0]);
+  const [boop, setBoop] = React.useState(0);
+  const [pops, setPops] = React.useState([]);
+  const move = e => {
+    if (!motion) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    setTilt([((e.clientX - r.left) / r.width - 0.5) * 18, -((e.clientY - r.top) / r.height - 0.5) * 18]);
+  };
+  const doBoop = () => {
+    setBoop(b => b + 1);
+    const batch = Array.from({ length: 6 }, (_, i) => ({ id: Date.now() + i, dx: (Math.random() - 0.5) * 260 + 'px',
+      r: (Math.random() - 0.5) * 70 + 'deg', d: Math.random() * 0.15, s: 18 + Math.random() * 18 }));
+    setPops(p => [...p, ...batch]);
+    setTimeout(() => setPops(p => p.filter(x => !batch.includes(x))), 1400);
+  };
+  return h('div', { role: 'button', tabIndex: 0, 'aria-label': 'Boop the paw', onMouseMove: move, onMouseLeave: () => setTilt([0, 0]),
+      onClick: doBoop, onKeyDown: e => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), doBoop()),
+      style: { position: 'relative', width: 'min(400px, 76vw)', aspectRatio: '1', cursor: 'pointer', outlineOffset: 8, borderRadius: '24%' } },
+    h('div', { style: { position: 'absolute', inset: '-18%', borderRadius: '50%', pointerEvents: 'none',
+      background: 'radial-gradient(closest-side, color-mix(in srgb, var(--color-accent) 42%, transparent), color-mix(in srgb, var(--color-section-glow) 30%, transparent) 55%, transparent)',
+      animation: motion ? 'lmp-glow 6s ease-in-out infinite' : 'none' } }),
+    h('div', { style: { position: 'absolute', inset: 0, animation: motion ? 'lmp-float 7s ease-in-out infinite' : 'none' } },
+      h('div', { style: { width: '100%', height: '100%', transform: `perspective(900px) rotateY(${tilt[0]}deg) rotateX(${tilt[1]}deg)`, transition: 'transform .25s ease-out' } },
+        h('img', { key: boop, src: 'assets/AppIcon-1024.png', alt: 'LickMyPaw app icon', draggable: false,
+          style: { width: '100%', height: '100%', display: 'block', userSelect: 'none', animation: boop && motion ? 'lmp-squish .55s ease-out' : 'none',
+            filter: 'drop-shadow(0 30px 50px rgba(0,0,0,.45))' } }))),
+    pops.map(p => h('div', { key: p.id, style: { position: 'absolute', left: '50%', top: '38%', pointerEvents: 'none', '--dx': p.dx, '--r': p.r,
+      animation: `lmp-pop 1.2s ${p.d}s ease-out both` } }, h(Paw, { size: p.s, color: 'var(--color-accent-200)' }))));
+}
+
+function Terminal({ motion }) {
+  const total = TERMINAL.reduce((n, l) => n + l[1].length, 0);
+  const [n, setN] = React.useState(motion ? 0 : total);
+  React.useEffect(() => {
+    if (!motion) return;
+    const id = setTimeout(() => setN(v => (v >= total ? 0 : v + 1)), n >= total ? 3200 : n === 0 ? 600 : 28);
+    return () => clearTimeout(id);
+  }, [n, motion]);
+  let left = n;
+  const rows = [];
+  for (let i = 0; i < TERMINAL.length && left > 0; i++) {
+    const [kind, text] = TERMINAL[i], shown = text.slice(0, left); left -= text.length;
+    rows.push(h('div', { key: i, style: { color: kind === 'cmd' ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 55%, transparent)', marginBottom: kind === 'out' ? 10 : 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } },
+      kind === 'cmd' ? h('span', { style: { color: 'var(--color-accent)' } }, '$ ') : null, shown,
+      left <= 0 ? h('span', { style: { display: 'inline-block', width: 8, height: 16, verticalAlign: '-3px', marginLeft: 2, background: 'var(--color-accent)', animation: 'lmp-caret 1s steps(1) infinite' } }) : null));
+  }
+  return h('div', { style: { borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: 'var(--shadow-md)', background: 'var(--color-neutral-900)' } },
+    h('div', { style: { height: 30, display: 'flex', alignItems: 'center', gap: 8, padding: '0 14px', background: 'var(--color-surface)' } },
+      [0, 1, 2].map(i => h('span', { key: i, style: { width: 11, height: 11, borderRadius: '50%', background: 'var(--color-neutral-600)' } })),
+      h('span', { style: { marginLeft: 10, fontSize: 12, color: 'color-mix(in srgb, var(--color-text) 55%, transparent)' } }, 'zsh: lickmypaw')),
+    h('div', { style: { padding: '18px 20px', minHeight: 280, font: '13.5px/22px ui-monospace, SFMono-Regular, Menlo, monospace' } }, rows));
+}
+
+class Component extends DCLogic {
+  state = { news: [] };
+  shotRef = React.createRef();
+  motion() { return (this.props.motion ?? true) && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  componentDidMount() {
+    fetch('content/news.json', { cache: 'no-cache' }).then(r => r.json())
+      .then(d => this.setState({ news: d.entries || [] })).catch(() => {});
+    if (!this.motion()) return;
+    const els = document.querySelectorAll('[data-reveal]');
+    if ('IntersectionObserver' in window) {
+      this.io = new IntersectionObserver(es => es.forEach(e => {
+        if (!e.isIntersecting) return;
+        e.target.style.opacity = '1'; e.target.style.transform = 'none'; this.io.unobserve(e.target);
+      }), { rootMargin: '0px 0px -8% 0px' });
+      els.forEach(el => {
+        if (el.getBoundingClientRect().top < innerHeight) return;
+        el.style.opacity = '0'; el.style.transform = 'translateY(28px)';
+        el.style.transition = 'opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1)';
+        this.io.observe(el);
+      });
+    }
+    this.onScroll = () => {
+      const el = this.shotRef.current; if (!el) return;
+      const r = el.getBoundingClientRect();
+      const p = Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight * 0.75)));
+      el.style.transform = `perspective(1800px) rotateX(${(1 - p) * 14}deg) scale(${0.93 + 0.07 * p})`;
+    };
+    addEventListener('scroll', this.onScroll, { passive: true });
+    this.onScroll();
+  }
+  componentWillUnmount() {
+    this.io && this.io.disconnect();
+    this.onScroll && removeEventListener('scroll', this.onScroll);
+  }
+  renderVals() {
+    const motion = this.motion();
+    const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const latest = this.state.news.slice(0, this.props.newsCount ?? 3).map((e, i) => ({
+      ...e, id: `${e.date}-${i}`, dateLabel: fmt(e.date),
+      typeLabel: e.type === 'release' ? 'Release' : 'News',
+      tagClass: e.type === 'release' ? 'tag-accent' : 'tag-neutral',
+      heading: e.version ? `${e.version}: ${e.title}` : e.title,
+    }));
+    return {
+      heroSrc: `assets/screenshots/${HERO[this.props.heroScreenshot ?? 'prowl'] || '02-prowl'}.png`,
+      shotRef: this.shotRef,
+      heroIcon: h(HeroIcon, { motion }),
+      pawTrail: h(PawTrail, { motion }),
+      pawTrail2: h(PawTrail, { motion, from: [6, 14], to: [94, 86], steps: 16, color: 'color-mix(in srgb, var(--color-text) 10%, transparent)' }),
+      terminal: h(Terminal, { motion }),
+      showCompare: this.props.showCompare ?? true,
+      f: FEATURES,
+      extras: EXTRAS.map(([title, copy]) => ({ title, copy })),
+      reasons: REASONS.map(([title, copy], i) => ({ n: String(i + 1).padStart(2, '0'), title, copy })),
+      compare: COMPARE.map(([k, them, us]) => ({ k, them, us })),
+      latest,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

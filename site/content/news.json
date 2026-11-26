@@ -1,0 +1,62 @@
+{
+  "_schema": "Newest entry first. type: 'release' | 'news'. date: YYYY-MM-DD. version: optional, e.g. 'v0.2.0'. items: optional list of plain-text bullets. link: optional {label, url}.",
+  "entries": [
+    {
+      "date": "2026-11-26",
+      "type": "release",
+      "version": "v0.2.0",
+      "title": "Menu bar, five new tools and self-update",
+      "summary": "The app feels like a real Mac app now. It also fixes a hang at launch that the first test builds showed. Unsigned build, Apple Silicon, macOS 13 or later.",
+      "items": [
+        "Menu bar paw with free disk, memory pressure, CPU load and the Trash. Sampling runs only while it is open and costs microseconds",
+        "Launch at login and optional notifications for a full disk or a big Trash, off by default",
+        "Maintenance: flush DNS, reindex Spotlight, rebuild Launch Services, thin Time Machine snapshots. Each task shows its exact command first",
+        "Privacy cleaner for Safari, Chrome, Edge, Brave, Arc and Firefox. Everything goes to the Trash, so it can be undone",
+        "Shredder: overwrite then delete. It cannot be undone, and on SSD and APFS an overwrite is not guaranteed to reach the old blocks",
+        "Updates tab in Applications for Sparkle, App Store and Homebrew casks, only when you press the button",
+        "More Cleanup categories: Mail downloads, iOS backups, Simulator devices, Xcode DeviceSupport and Archives",
+        "Built-in update check against GitHub Releases, verified with SHA-256",
+        "Fixed: hang at launch with 100% CPU, window going behind others, update banner that would not close"
+      ],
+      "link": {
+        "label": "Release notes and download",
+        "url": "https://github.com/tcsenpai/LickMyPaw/releases/tag/v0.2.0"
+      }
+    },
+    {
+      "date": "2026-11-26",
+      "type": "news",
+      "title": "LickMyPaw has a website",
+      "summary": "The project now has a home outside the README. Release notes, roadmap updates and project news will be posted on this page.",
+      "items": [],
+      "link": {
+        "label": "Star the repo on GitHub",
+        "url": "https://github.com/tcsenpai/LickMyPaw"
+      }
+    },
+    {
+      "date": "2026-11-25",
+      "type": "release",
+      "version": "v0.1.1",
+      "title": "Fix: the packaged app crashed on launch",
+      "summary": "The app from the DMG or zip crashed because its resources were looked up in the build machine's path. They are now found inside the app. CI unpacks the packaged app and checks it before every release.",
+      "items": [],
+      "link": {
+        "label": "Download v0.1.1",
+        "url": "https://github.com/tcsenpai/LickMyPaw/releases/tag/v0.1.1"
+      }
+    },
+    {
+      "date": "2026-11-25",
+      "type": "release",
+      "version": "v0.1.0",
+      "title": "First public build (do not use)",
+      "summary": "This build crashes on launch outside the machine that built it. Use v0.1.1 or later.",
+      "items": [],
+      "link": {
+        "label": "See the releases",
+        "url": "https://github.com/tcsenpai/LickMyPaw/releases"
+      }
+    }
+  ]
+}

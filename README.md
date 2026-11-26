@@ -5,6 +5,8 @@
 
 **The free, open source alternative to CleanMyMac.**
 
+Website: [tcsenpai.github.io/LickMyPaw](https://tcsenpai.github.io/LickMyPaw/)
+
 LickMyPaw cleans up your Mac: it shows what eats your disk, clears caches and junk, uninstalls apps with their leftovers, finds large and duplicate files, and checks your system for problems. It is a native app written in Swift and SwiftUI. No subscription, no account, no telemetry, and you can read every line of it.
 
 <p align="center">

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>News and changelog | LickMyPaw</title>
+<meta name="description" content="Releases, changelog and project news for LickMyPaw, the free, open source Mac cleaner.">
+<link rel="icon" href="assets/AppIcon-1024.png">
+<link rel="stylesheet" href="_ds/nocturne-1cd76810-4672-49a4-a748-310c574c7b5d/styles.css">
+<script src="_ds/nocturne-1cd76810-4672-49a4-a748-310c574c7b5d/_ds_bundle.js"></script>
+<style>
+body { margin: 0; text-wrap: pretty;
+  background: radial-gradient(1200px 720px at 82% -160px, color-mix(in srgb, var(--color-accent-900) 75%, transparent), transparent 60%), radial-gradient(1100px 800px at -10% 100%, color-mix(in srgb, black 30%, transparent), transparent 55%), var(--color-bg); }
+a { color: var(--color-accent-300); }
+a:hover { color: var(--color-accent-200); }
+</style>
+</helmet>
+
+<nav class="nav" style="position: sticky; top: 0; z-index: 20; flex-wrap: wrap; padding-inline: max(clamp(20px, 5vw, 72px), calc((100% - 1200px) / 2 + clamp(20px, 5vw, 72px))); background: color-mix(in srgb, var(--color-bg) 72%, transparent); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);">
+  <a href="Home.dc.html" class="nav-brand" style="display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: var(--color-text);"><img src="assets/AppIcon-1024.png" alt="" style="width: 26px; height: 26px;">LickMyPaw</a>
+  <a href="Home.dc.html#features">Features</a>
+  <a href="Home.dc.html#compare">Compare</a>
+  <a href="Home.dc.html#cli">CLI</a>
+  <a href="News.dc.html" aria-current="page" style="color: var(--color-accent);">News</a>
+  <a class="btn btn-primary" href="Home.dc.html#download" style="text-decoration: none;">Download</a>
+</nav>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 72px);">
+  <header style="padding: clamp(56px, 8vw, 96px) 0 40px;">
+    <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(40px, 5.4vw, 68px); line-height: 1.08; letter-spacing: -0.015em; margin: 0 0 0 -0.06em; color: var(--color-text);">News and changelog</h1>
+    <p style="font-size: 17px; line-height: 28px; max-width: 58ch; margin: 24px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">What shipped in each release, and what is happening around the project. Builds live on <a href="https://github.com/tcsenpai/LickMyPaw/releases">GitHub Releases</a>.</p>
+    <div role="group" aria-label="Filter entries" style="display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: 32px;">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+        <button type="button" aria-pressed="{{ f.pressed }}" onClick="{{ f.select }}" style="cursor: pointer; font: inherit; font-size: 14px; padding: 6px 14px; border-radius: 999px; border: 1px solid {{ f.border }}; background: {{ f.bg }}; color: var(--color-text);" style-hover="background: color-mix(in srgb, var(--color-accent) 12%, transparent);">{{ f.label }} <span style="color: color-mix(in srgb, var(--color-text) 55%, transparent); font-feature-settings: 'tnum' 1;">{{ f.count }}</span></button>
+      </sc-for>
+    </div>
+  </header>
+
+  <section aria-label="Entries" style="padding-bottom: 96px;">
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+      <p style="padding: 40px 0; color: color-mix(in srgb, var(--color-text) 64%, transparent);">Nothing here yet.</p>
+    </sc-if>
+    <sc-for list="{{ entries }}" as="e" hint-placeholder-count="3">
+      <article id="{{ e.id }}" style="display: flex; flex-wrap: wrap; gap: 16px clamp(24px, 4vw, 72px); padding: 40px 0; scroll-margin-top: 24px; background: linear-gradient(to right, transparent, var(--color-neutral-700) 48px calc(100% - 48px), transparent) top / 100% 1px no-repeat;">
+        <div style="flex: 0 0 180px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+          <time datetime="{{ e.date }}" style="font-size: 15px; color: color-mix(in srgb, var(--color-text) 78%, transparent); font-feature-settings: 'tnum' 1;">{{ e.dateLabel }}</time>
+          <span class="tag {{ e.tagClass }}">{{ e.typeLabel }}</span>
+        </div>
+        <div style="flex: 1 1 420px; min-width: 0; max-width: 720px;">
+          <sc-if value="{{ e.version }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 10px; font-feature-settings: 'tnum' 1;">{{ e.version }}</p>
+          </sc-if>
+          <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; margin: 0; color: var(--color-text);">{{ e.title }}</h2>
+          <p style="font-size: 15.5px; line-height: 26px; margin: 14px 0 0; color: color-mix(in srgb, var(--color-text) 78%, transparent);">{{ e.summary }}</p>
+          <sc-if value="{{ e.hasItems }}" hint-placeholder-val="{{ false }}">
+            <ul style="margin: 16px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15.5px; line-height: 24px; color: color-mix(in srgb, var(--color-text) 78%, transparent);">
+              <sc-for list="{{ e.items }}" as="it" hint-placeholder-count="3">
+                <li style="padding-left: 4px;">{{ it }}</li>
+              </sc-for>
+            </ul>
+          </sc-if>
+          <sc-if value="{{ e.link }}" hint-placeholder-val="{{ false }}">
+            <a href="{{ e.link.url }}" style="display: inline-block; margin-top: 20px; font-size: 15px;">{{ e.link.label }} →</a>
+          </sc-if>
+        </div>
+      </article>
+    </sc-for>
+  </section>
+
+  <footer style="padding: 40px 0 56px; display: flex; flex-wrap: wrap; gap: 12px 32px; justify-content: space-between; font-size: 13px; line-height: 20px; color: color-mix(in srgb, var(--color-text) 64%, transparent); background: linear-gradient(to right, transparent, var(--color-divider) 48px calc(100% - 48px), transparent) top / 100% 1px no-repeat;">
+    <span>LickMyPaw · MIT licensed · by <a href="https://github.com/tcsenpai">tcsenpai</a></span>
+    <a href="Home.dc.html">← Back to home</a>
+  </footer>
+</main>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+// Entries come from content/news.json. Do not hard-code entries here.
+class Component extends DCLogic {
+  state = { news: [], filter: 'all' };
+  componentDidMount() {
+    fetch('content/news.json', { cache: 'no-cache' }).then(r => r.json())
+      .then(d => this.setState({ news: d.entries || [] }, () => {
+        const id = decodeURIComponent(location.hash.slice(1));
+        const el = id && document.getElementById(id);
+        if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24 });
+      })).catch(() => {});
+  }
+  renderVals() {
+    const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const all = this.state.news.map((e, i) => ({
+      ...e, id: `${e.date}-${i}`, dateLabel: fmt(e.date),
+      typeLabel: e.type === 'release' ? 'Release' : 'News',
+      tagClass: e.type === 'release' ? 'tag-accent' : 'tag-neutral',
+      version: e.version || '', items: e.items || [], hasItems: !!(e.items && e.items.length),
+      link: e.link && e.link.url ? e.link : null,
+    }));
+    const f = this.state.filter;
+    const entries = f === 'all' ? all : all.filter(e => e.type === f);
+    const filters = [['all', 'All'], ['release', 'Releases'], ['news', 'News']].map(([key, label]) => {
+      const on = key === f;
+      return { label, count: key === 'all' ? all.length : all.filter(e => e.type === key).length,
+        pressed: on ? 'true' : 'false',
+        bg: on ? 'color-mix(in srgb, var(--color-accent) 16%, transparent)' : 'transparent',
+        border: on ? 'var(--color-accent)' : 'var(--color-neutral-700)',
+        select: () => this.setState({ filter: key }) };
+    });
+    return { entries, filters, isEmpty: this.state.news.length > 0 && entries.length === 0 };
+  }
+}
+
+</script>
+</body>
+</html>
