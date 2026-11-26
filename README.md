@@ -18,7 +18,7 @@ Mac cleaners are useful, but the good ones are paid, closed, and ask for deep ac
 - **Free and MIT licensed.** Use it, fork it, change it.
 - **Nothing is deleted for good.** Everything LickMyPaw removes goes to the Trash first, and every action is logged so you can undo it.
 - **One safety gate.** Every delete goes through the same check, which refuses system locations and any folder you excluded.
-- **No network, no telemetry.** The app never phones home. The only download is the ClamAV signature update, and only if you install ClamAV from the app.
+- **No telemetry.** The app sends no identifiers. It makes two kinds of network request: the update check (it asks GitHub for the latest release, once a day by default, and you can turn it off) and the ClamAV signature update, only if you install ClamAV from the app.
 - **Scriptable.** The same binary has a JSON command line, so scripts and AI agents can use it too.
 
 ## Screenshots
@@ -74,7 +74,8 @@ xattr -dr com.apple.quarantine /Applications/LickMyPaw.app
 | **Purr** | A one-click checkup that reuses the other tools and tells you what needs attention. |
 | **Protection** | Malware scan with the open source [ClamAV](https://www.clamav.net/) engine, plus checks for SIP, Gatekeeper, FileVault, the firewall and XProtect, and an audit of what starts at login. |
 | **Trash button** | Always in the sidebar. Shows the Trash size, opens it, and empties it after asking. |
-| **Settings** | Language, excluded folders, and a history of actions with Undo. |
+| **Menu bar** | A paw icon with free disk, memory pressure, CPU load and the Trash (with Empty Trash), plus shortcuts to Smart Care and the app. It only measures while the menu is open. Can be hidden in Settings. |
+| **Settings** | Language, menu bar and launch at login, optional notifications (disk almost full, big Trash), updates, excluded folders, and a history of actions with Undo. |
 
 Available in English, Italian, French and Spanish. It follows your macOS language.
 
@@ -90,14 +91,21 @@ LickMyPaw covers the everyday jobs. It is a young project, so here is what it do
 | Malware scan | Own engine | ClamAV (open source, optional install) |
 | Real-time malware monitor | Yes | No |
 | Signed and notarized builds | Yes | Not yet |
-| Menu bar app | Yes | Not yet |
-| Automatic updates | Yes | Not yet |
+| Menu bar app | Yes | Yes |
+| Automatic updates | Yes | Update check against GitHub Releases, checksum verified (Sparkle comes with signing) |
 | Command line for scripts | No | Yes, JSON output |
 | Telemetry | Depends on settings | None |
 
 The malware scan relies on ClamAV signatures. It is useful for checking files you downloaded, but it is not a replacement for a full antivirus.
 
 CleanMyMac is a trademark of MacPaw. LickMyPaw is an independent project and is not affiliated with or endorsed by MacPaw.
+
+## Menu bar, notifications and updates
+
+- **Cost:** the menu bar icon is static. Stats are sampled only while its menu is open (every 2 seconds). In the background there is one check at most every 5 minutes that reads the free disk space and nothing else: no scans, no process lists. If notifications and the daily update check are both off, there is no timer at all.
+- **Notifications** are off until you enable them in Settings (macOS then asks for permission). They cover a nearly full disk (default: below 10 percent or 10 GB free) and a large Trash (default: over 5 GB), at most one of each per day.
+- **Launch at login** is an explicit toggle, off by default. It shows the real state, including when macOS wants your approval.
+- **Updates:** LickMyPaw asks `api.github.com` for the latest release (generic `LickMyPaw` user agent, nothing identifying) once a day, or when you press Check for updates. It ignores pre-releases, downloads the zip, checks it against the release's `SHA256SUMS.txt` (a mismatch is refused), checks the bundle identifier, then replaces itself and relaunches. If it cannot write to its folder it shows the new app in Finder instead.
 
 ## Build from source
 
@@ -120,6 +128,7 @@ BIN=LickMyPaw.app/Contents/MacOS/LickMyPaw
 $BIN scan ~ --depth 2 --top 15 --min 100M     # size tree, biggest first
 $BIN big ~/Library --files --limit 30         # the largest files
 $BIN trash ~/Downloads/old.dmg                # dry run, add --yes to move it to the Trash
+$BIN update --check                           # current vs latest release (the one explicit network call)
 ```
 
 There is a ready-made skill for AI coding agents in [`skill/SKILL.md`](skill/SKILL.md). Link it to `~/.claude/skills/lickmypaw` to use it with Claude Code.
@@ -135,7 +144,7 @@ The suites run on throwaway folders and a fake home. They never touch your files
 
 ## Roadmap
 
-Planned: an on-device assistant built on Apple's Foundation Models with a small read-only toolbox that can only propose actions, a privacy cleaner, maintenance scripts, a file shredder, a menu bar mode, Developer ID signing and notarization, and automatic updates.
+Planned: an on-device assistant built on Apple's Foundation Models with a small read-only toolbox that can only propose actions, a privacy cleaner, maintenance scripts, a file shredder, Developer ID signing and notarization, and Sparkle based updates once the builds are signed (the built-in updater checks GitHub Releases and verifies the SHA-256 until then).
 
 Known limits: builds are Apple Silicon only, hard links and APFS clones are counted approximately, and undoing a removal does not put files back into lists you already scanned until you rescan.
 
