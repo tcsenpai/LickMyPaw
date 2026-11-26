@@ -178,7 +178,22 @@ import AppKit
 struct AppsView: View {
     @ObservedObject private var m = AppsModel.shared
     private let T_ = "Apps"
+    @State private var tab = Tab.uninstall
+    enum Tab { case uninstall, updates }
+
     var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) { tabButton(TT("Uninstall", T_), .uninstall); tabButton(TT("Updates", T_), .updates); Spacer() }.padding(.horizontal, 20).padding(.top, 16)
+            if tab == .updates { UpdaterView() } else { uninstallBody }
+        }
+    }
+
+    private func tabButton(_ t: String, _ x: Tab) -> some View {
+        Button(t) { withAnimation(spring) { tab = x } }.buttonStyle(SoftButton())
+            .opacity(tab == x ? 1 : 0.55).overlay(Capsule().strokeBorder(.white.opacity(tab == x ? 0.6 : 0)))
+    }
+
+    var uninstallBody: some View {
         ZStack {
             Background()
             HStack(alignment: .top, spacing: 16) {
