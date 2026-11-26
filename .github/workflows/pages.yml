@@ -1,10 +1,11 @@
 name: Website
 
-# Publishes site/ to GitHub Pages. The screenshots are shared with the README, so they are copied in at build time.
+# Publishes site/ and the blog (blog/posts/*.md, built by scripts/build-blog.py) to GitHub Pages.
+# The screenshots are shared with the README, so they are copied in at build time.
 on:
   push:
     branches: [main]
-    paths: ['site/**', 'assets/screenshots/**', '.github/workflows/pages.yml']
+    paths: ['site/**', 'blog/**', 'scripts/build-blog.py', 'assets/screenshots/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -30,6 +31,13 @@ jobs:
           cp -R site/. _site/
           mkdir -p _site/assets/screenshots
           cp assets/screenshots/*.png _site/assets/screenshots/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build the blog
+        run: |
+          python -m pip install --quiet markdown
+          python scripts/build-blog.py _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
