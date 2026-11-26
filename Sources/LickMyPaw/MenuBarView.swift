@@ -21,6 +21,7 @@ private let S = "System"
 
     func start() {
         guard timer == nil else { return }
+        if Demo.enabled { sample = Demo.menuSample; return }   // screenshots: fake numbers, no timer, no sampling
         disk = SysStats.disk() ?? (0, 0); ticks = 0
         sample = SysStats.sample(prev: &prev, disk: disk)
         let t = Timer(timeInterval: 2, repeats: true) { [weak self] _ in Task { @MainActor in self?.tick() } }

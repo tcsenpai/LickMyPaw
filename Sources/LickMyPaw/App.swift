@@ -522,7 +522,7 @@ struct ContentView: View {
         if let i = pa.firstIndex(of: "--render-page"), i + 2 < pa.count {
             MainActor.assumeIsolated {
                 let inner: AnyView
-                if ["maintenance", "privacy", "shredder"].contains(pa[i + 1]) { Demo.seed() }   // fake data only: never scan or run anything real
+                if ["maintenance", "privacy", "shredder", "menubar"].contains(pa[i + 1]) { Demo.seed() }   // fake data only: never scan or run anything real
                 switch pa[i + 1] {
                 case "cleanup": inner = AnyView(CleanupView())
                 case "apps": inner = AnyView(AppsView())
@@ -530,12 +530,14 @@ struct ContentView: View {
                 case "maintenance": inner = AnyView(MaintenanceView())
                 case "privacy": inner = AnyView(PrivacyView())
                 case "shredder": inner = AnyView(ShredderView())
+                case "menubar": inner = AnyView(MenuBarView())
                 default: inner = AnyView(FDAGuideView(onNotNow: {}, onClose: {}))
                 }
                 // Offscreen NSHostingView in a window that is never shown: draws ScrollViews/native controls too (ImageRenderer cannot).
                 let app = NSApplication.shared; app.setActivationPolicy(.prohibited)
-                let v = ZStack { Background(); inner }.frame(width: 900, height: 600).preferredColorScheme(.dark)
-                let host = NSHostingView(rootView: v); host.frame = NSRect(x: 0, y: 0, width: 900, height: 600)
+                let (w, h) = pa[i + 1] == "menubar" ? (320.0, 430.0) : (900.0, 600.0)   // the popover is rendered at its own size
+                let v = ZStack { Background(); inner }.frame(width: w, height: h).preferredColorScheme(.dark)
+                let host = NSHostingView(rootView: v); host.frame = NSRect(x: 0, y: 0, width: w, height: h)
                 let win = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
                 win.contentView = host; win.appearance = NSAppearance(named: .darkAqua)
                 for _ in 0..<(Int(ProcessInfo.processInfo.environment["LMP_RENDER_WAIT"] ?? "") ?? 40) { RunLoop.main.run(until: Date().addingTimeInterval(0.1)); host.layoutSubtreeIfNeeded() }   // let async scans finish
