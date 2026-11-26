@@ -40,6 +40,14 @@ Mac cleaners are useful, but the good ones are paid, closed, and ask for deep ac
     <td><img src="assets/screenshots/08-protection.png" alt="Protection"></td>
     <td><img src="assets/screenshots/09-settings.png" alt="Settings"></td>
   </tr>
+  <tr>
+    <td><img src="assets/screenshots/10-maintenance.png" alt="Maintenance"></td>
+    <td><img src="assets/screenshots/11-privacy.png" alt="Privacy"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/12-shredder.png" alt="Shredder"></td>
+    <td></td>
+  </tr>
 </table>
 
 The screenshots use made-up demo data.
