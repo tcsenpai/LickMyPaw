@@ -178,7 +178,7 @@ import AppKit
 struct AppsView: View {
     @ObservedObject private var m = AppsModel.shared
     private let T_ = "Apps"
-    @State private var tab = Tab.uninstall
+    @State private var tab = Demo.updatesTab ? Tab.updates : Tab.uninstall
     enum Tab { case uninstall, updates }
 
     var body: some View {

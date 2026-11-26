@@ -61,7 +61,7 @@ struct UpdaterView: View {
             Spacer()
             Text(st).font(.system(size: 12, design: .rounded)).foregroundStyle(col).lineLimit(2).multilineTextAlignment(.trailing).frame(maxWidth: 200, alignment: .trailing)
             Text(kindBadge(e.kind)).font(.system(size: 10, weight: .semibold, design: .rounded)).padding(.horizontal, 8).padding(.vertical, 3).background(Capsule().fill(.white.opacity(0.18)))
-            actions(e).frame(width: 150, alignment: .trailing)
+            actions(e).fixedSize().frame(minWidth: 150, alignment: .trailing)
         }.padding(10).glass(14)
     }
 

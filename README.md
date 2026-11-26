@@ -18,7 +18,7 @@ Mac cleaners are useful, but the good ones are paid, closed, and ask for deep ac
 - **Free and MIT licensed.** Use it, fork it, change it.
 - **Nothing is deleted for good.** Everything LickMyPaw removes goes to the Trash first, and every action is logged so you can undo it.
 - **One safety gate.** Every delete goes through the same check, which refuses system locations and any folder you excluded.
-- **No telemetry.** The app sends no identifiers. It makes three kinds of network request: the update check (it asks GitHub for the latest release, once a day by default, and you can turn it off) the check for app updates in Applications (only when you press the button), and the ClamAV signature update, only if you install ClamAV from the app.
+- **No telemetry.** The app sends no identifiers. It makes network calls in three cases and no others: the update check (it asks GitHub for the latest release once a day, and you can turn that off in Settings), the ClamAV signature download, only if you install ClamAV from the app, and the update checks in Applications, only when you press Check for updates.
 - **Scriptable.** The same binary has a JSON command line, so scripts and AI agents can use it too.
 
 ## Screenshots
@@ -46,9 +46,13 @@ Mac cleaners are useful, but the good ones are paid, closed, and ask for deep ac
   </tr>
   <tr>
     <td><img src="assets/screenshots/12-shredder.png" alt="Shredder"></td>
-    <td></td>
+    <td><img src="assets/screenshots/13-updates.png" alt="Applications, Updates tab"></td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="assets/screenshots/14-menubar.png" alt="The menu bar popover" width="320">
+</p>
 
 The screenshots use made-up demo data.
 
@@ -104,8 +108,8 @@ LickMyPaw covers the everyday jobs. It is a young project, so here is what it do
 | Real-time malware monitor | Yes | No |
 | Signed and notarized builds | Yes | Not yet |
 | Menu bar app | Yes | Yes |
-| Automatic updates | Yes | Update check against GitHub Releases, checksum verified (Sparkle comes with signing) |
-| Check apps for updates | Yes | Yes, on demand (Sparkle, App Store, Homebrew casks) |
+| Automatic updates | Yes | Yes, through a GitHub release check, checksum verified. The builds are unsigned (Sparkle comes with signing) |
+| Updater for your other apps | Yes | Yes, on demand (Sparkle, App Store, Homebrew casks) |
 | Command line for scripts | No | Yes, JSON output |
 | Telemetry | Depends on settings | None |
 
@@ -127,7 +131,7 @@ You need macOS 13 or later and a Swift 5.9+ toolchain (Xcode or the Command Line
 ```bash
 ./bundle.sh                      # builds LickMyPaw.app, ad-hoc signed
 open LickMyPaw.app               # or: open LickMyPaw.app --args --page cleanup
-VERSION=0.1.0 ./package.sh       # also writes dist/*.dmg, dist/*.zip and SHA256SUMS.txt
+VERSION=0.2.0 ./package.sh       # also writes dist/*.dmg, dist/*.zip and SHA256SUMS.txt
 ```
 
 To scan the whole disk, give the app **Full Disk Access** in System Settings, Privacy & Security. The app has a short guide for it. Emptying the Trash from the app goes through Finder, so macOS asks for the Automation permission once.
@@ -141,7 +145,7 @@ BIN=LickMyPaw.app/Contents/MacOS/LickMyPaw
 $BIN scan ~ --depth 2 --top 15 --min 100M     # size tree, biggest first
 $BIN big ~/Library --files --limit 30         # the largest files
 $BIN trash ~/Downloads/old.dmg                # dry run, add --yes to move it to the Trash
-$BIN update --check                           # current vs latest release (the one explicit network call)
+$BIN update --check                           # current vs latest release (asks GitHub)
 ```
 
 There is a ready-made skill for AI coding agents in [`skill/SKILL.md`](skill/SKILL.md). Link it to `~/.claude/skills/lickmypaw` to use it with Claude Code.
@@ -153,11 +157,11 @@ There is a ready-made skill for AI coding agents in [`skill/SKILL.md`](skill/SKI
 .build/release/LickMyPaw --selftest cleanup      # one suite
 ```
 
-The suites run on throwaway folders and a fake home. They never touch your files and never run the real `launchctl` or `brew`. [`.github/workflows/build.yml`](.github/workflows/build.yml) runs them on an Apple Silicon runner, then builds the DMG and the zipped app. Pushing a tag such as `v0.1.0` publishes a GitHub Release with both files.
+The suites run on throwaway folders and a fake home. They never touch your files and never run the real `launchctl` or `brew`. [`.github/workflows/build.yml`](.github/workflows/build.yml) runs them on an Apple Silicon runner, then builds the DMG and the zipped app. Pushing a tag such as `v0.2.0` publishes a GitHub Release with both files.
 
 ## Roadmap
 
-Planned: an on-device assistant built on Apple's Foundation Models with a small read-only toolbox that can only propose actions, Developer ID signing and notarization, and Sparkle based updates once the builds are signed (the built-in updater checks GitHub Releases and verifies the SHA-256 until then).
+Still missing: an on-device assistant built on Apple's Foundation Models with a small read-only toolbox that can only propose actions; Developer ID signing and notarization, with Sparkle based updates, planned for 1.0.0 (until then the built-in updater checks GitHub Releases and verifies the SHA-256); and a real-time malware monitor, which needs the Endpoint Security entitlement from Apple.
 
 Known limits: the Shredder overwrites a file once with random data and once with zeros, but on APFS (copy-on-write, snapshots) and on SSDs (wear levelling) that does not guarantee every copy of the data is gone. It stops casual recovery; for real protection use FileVault. Builds are Apple Silicon only, hard links and APFS clones are counted approximately, and undoing a removal does not put files back into lists you already scanned until you rescan.
 

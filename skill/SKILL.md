@@ -8,6 +8,7 @@ Binary: `<repo>/LickMyPaw.app/Contents/MacOS/LickMyPaw` (alias it as `lickmypaw`
 - `lickmypaw scan <path> --depth 2 --top 15 [--min 100M]` → size tree (children sorted desc, `other_size` = remainder)
 - `lickmypaw big <path> [--files|--dirs] --limit 30 --min 100M` → flat ranking of largest items
 - `lickmypaw trash <path>... [--yes]` → Trash (dry-run unless `--yes`)
+- `lickmypaw update --check` → JSON with `current`, `latest`, `update_available` (plus `url` or `note`); exit code 1 with `error` if GitHub cannot be reached. It only reports: it never downloads or installs. This is the only CLI command that uses the network.
 
 Workflow: `scan ~ --depth 1` → drill into the biggest dir with `scan` / `big --files` → show the user the candidates → trash ONLY after explicit user approval, with `--yes`.
-Notes: sizes are allocated bytes (same as `du`); files <512K are folded into `aggregate` entries; mount points are not crossed; scan `/System/Volumes/Data` for the whole disk (needs Full Disk Access for the terminal/app). Never trash system or app-support paths without confirming.
+Notes: sizes are allocated bytes (same as `du`); files <512K are folded into `aggregate` entries; mount points are not crossed; the commands above are the whole CLI (`lickmypaw help` prints them); scan `/System/Volumes/Data` for the whole disk (needs Full Disk Access for the terminal/app). Never trash system or app-support paths without confirming.
