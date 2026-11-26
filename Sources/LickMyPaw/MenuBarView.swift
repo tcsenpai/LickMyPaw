@@ -155,13 +155,16 @@ enum NotifyCenter {
     private static var trashSink: AnyCancellable?
 
     static func start() {
-        // queue: nil + hop to the main actor (queue: .main can deadlock)
-        for name in [NSWindow.willCloseNotification, NSWindow.didBecomeMainNotification] {
-            observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { n in
-                let closing = name == NSWindow.willCloseNotification ? (n.object as AnyObject?).map(ObjectIdentifier.init) : nil
-                Task { @MainActor in refreshPolicy(closing: closing) }
-            })
-        }
+        // queue: nil + hop to the main actor (queue: .main can deadlock).
+        // Demote to the menu bar only when a window closes, promote to a normal app only when one becomes main. Never both on the
+        // same event: reacting to didBecomeMain in both directions made the policy flap at launch and spin the main menu rebuild at 100% CPU.
+        observers.append(NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: nil, queue: nil) { n in
+            let closing = (n.object as AnyObject?).map(ObjectIdentifier.init)
+            Task { @MainActor in refreshPolicy(closing: closing) }
+        })
+        observers.append(NotificationCenter.default.addObserver(forName: NSWindow.didBecomeMainNotification, object: nil, queue: nil) { _ in
+            Task { @MainActor in if NSApp.activationPolicy() != .regular { NSApp.setActivationPolicy(.regular) } }
+        })
         // Trash notifications are event driven: only when the Trash model refreshes for its own reasons. No scan is ever scheduled.
         trashSink = TrashModel.shared.$size.dropFirst().compactMap { $0 }.sink { size in Task { @MainActor in evaluate(trash: size) } }
         reconfigure()
@@ -172,7 +175,7 @@ enum NotifyCenter {
     static func refreshPolicy(closing: ObjectIdentifier? = nil) {
         let n = NSApp.windows.filter { $0.canBecomeMain && ($0.isVisible || $0.isMiniaturized) && ObjectIdentifier($0) != closing }.count
         let want: NSApplication.ActivationPolicy = ActivationRule.policy(menuBarOn: AppPrefs.menuBar, visibleWindows: n) == .accessory ? .accessory : .regular
-        if NSApp.activationPolicy() != want { NSApp.setActivationPolicy(want) }
+        if want == .accessory, NSApp.activationPolicy() != .accessory { NSApp.setActivationPolicy(.accessory) }
     }
 
     static func showMain(open: () -> Void) {

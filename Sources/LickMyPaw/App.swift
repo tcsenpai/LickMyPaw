@@ -558,10 +558,12 @@ struct ContentView: View {
         }
     }
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    // SwiftUI writes isInserted back on every status item update; a plain $binding to AppStorage turned that into an endless
+    // userDefaultsDidChange -> app graph -> main menu rebuild loop (100% CPU at launch). Only write when the value really changes.
     @AppStorage("menubar.enabled") private var showMenuBar = true
     var body: some Scene {
         WindowGroup("LickMyPaw", id: "main") { ContentView().ignoresSafeArea().updateBanner() }.windowStyle(.hiddenTitleBar)
-        MenuBarExtra("LickMyPaw", systemImage: "pawprint.fill", isInserted: $showMenuBar) { MenuBarView() }.menuBarExtraStyle(.window)
+        MenuBarExtra("LickMyPaw", systemImage: "pawprint.fill", isInserted: Binding(get: { showMenuBar }, set: { if $0 != showMenuBar { showMenuBar = $0 } })) { MenuBarView() }.menuBarExtraStyle(.window)
     }
 }
 

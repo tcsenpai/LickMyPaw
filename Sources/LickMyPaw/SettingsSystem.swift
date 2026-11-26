@@ -134,7 +134,7 @@ struct UpdateSheet: View {
 private struct UpdateBannerModifier: ViewModifier {
     @ObservedObject private var up = UpdateModel.shared
     @State private var sheet = false
-    @State private var dismissed: String?
+    @AppStorage("update.dismissedTag") private var dismissed = ""   // remembered, so a closed banner stays closed for that version
     func body(content: Content) -> some View {
         content.overlay(alignment: .top) {
             if up.state == .available, let i = up.info, dismissed != i.tag {
@@ -142,7 +142,7 @@ private struct UpdateBannerModifier: ViewModifier {
                     Image(systemName: "arrow.down.circle.fill")
                     Text(TTF("LickMyPaw %@ is available", S, i.tag)).font(.system(size: 13, weight: .semibold, design: .rounded))
                     Button(TT("What's new", S)) { sheet = true }.buttonStyle(SoftButton())
-                    Button { dismissed = i.tag } label: { Image(systemName: "xmark") }.buttonStyle(.plain).opacity(0.7)
+                    Button { withAnimation(spring) { dismissed = i.tag } } label: { Image(systemName: "xmark").frame(width: 28, height: 28).contentShape(Rectangle()) }.buttonStyle(.plain).opacity(0.8)
                 }.foregroundStyle(.white).padding(.horizontal, 16).padding(.vertical, 8).background(Capsule().fill(Color(hex: 0xD41FBF))).padding(.top, 10).transition(.move(edge: .top).combined(with: .opacity))
             }
         }
