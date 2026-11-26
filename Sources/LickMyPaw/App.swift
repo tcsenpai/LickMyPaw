@@ -541,8 +541,11 @@ struct ContentView: View {
             exit(0)
         }
     }
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @AppStorage("menubar.enabled") private var showMenuBar = true
     var body: some Scene {
-        WindowGroup("LickMyPaw") { ContentView().ignoresSafeArea() }.windowStyle(.hiddenTitleBar)
+        WindowGroup("LickMyPaw", id: "main") { ContentView().ignoresSafeArea().updateBanner() }.windowStyle(.hiddenTitleBar)
+        MenuBarExtra("LickMyPaw", systemImage: "pawprint.fill", isInserted: $showMenuBar) { MenuBarView() }.menuBarExtraStyle(.window)
     }
 }
 

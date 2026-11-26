@@ -7,13 +7,14 @@ enum CLI {
       lickmypaw scan <path> [--depth 2] [--top 15] [--min 10M]   size tree, children sorted desc
       lickmypaw big  <path> [--files|--dirs] [--limit 30] [--min 100M]   flat ranking of largest items
       lickmypaw trash <path>... [--yes]                          move to Trash (dry-run without --yes)
+      lickmypaw update --check                                   current vs latest release (the one explicit network call)
     Sizes = allocated bytes (like du). --min accepts K/M/G. Does not cross mount points; symlinks skipped.
     Files < 512K are folded into "N small files" entries (aggregate=true).
     """
 
     static func runIfRequested() -> Bool {
         var a = Array(CommandLine.arguments.dropFirst())
-        guard let cmd = a.first, ["scan", "big", "trash", "help", "--help", "-h"].contains(cmd) else { return false }
+        guard let cmd = a.first, ["scan", "big", "trash", "update", "help", "--help", "-h"].contains(cmd) else { return false }
         a.removeFirst()
         func opt(_ n: String) -> String? { a.firstIndex(of: n).flatMap { $0 + 1 < a.count ? a[$0 + 1] : nil } }
         let flags: Set<String> = ["--files", "--dirs", "--yes"]
@@ -64,6 +65,14 @@ enum CLI {
                 catch { res.append(["path": path, "status": "error", "error": error.localizedDescription]) }
             }
             emit(["results": res, "dry_run": !yes])
+        case "update":
+            guard a.contains("--check") else { fail("usage: lickmypaw update --check") }
+            let bv = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
+            nonisolated(unsafe) var res: (code: Int32, json: [String: Any]) = (1, [:])
+            let sem = DispatchSemaphore(value: 0)
+            Task.detached { res = await UpdateCLI.check(current: SemVer(bv), bundleVersion: bv); sem.signal() }
+            sem.wait()
+            emit(res.json); if res.code != 0 { exit(res.code) }
         default: print(usage)
         }
         return true

@@ -10,12 +10,7 @@ struct SettingsView: View {
     private let langs: [(String, String)] = [("", ""), ("en", "English"), ("it", "Italiano"), ("fr", "Français"), ("es", "Español")]
     private let S = "Settings"
 
-    private func card<C: View>(_ title: String, @ViewBuilder _ c: () -> C) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.system(size: 16, weight: .bold, design: .rounded))
-            c()
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(18).glass(22)
-    }
+    private func card<C: View>(_ title: String, @ViewBuilder _ c: @escaping () -> C) -> some View { SettingsCard(title: title, content: c) }
     private func reload() { withAnimation(spring) { excl = Prefs.exclusions; history = ActionLog.all().reversed() } }
 
     var body: some View {
@@ -64,6 +59,7 @@ struct SettingsView: View {
                         }.padding(8).glass(12)
                     }
                 }
+                SystemSettingsView()
                 card(TT("About", S)) {
                     Text("LickMyPaw").font(.system(size: 15, weight: .semibold, design: .rounded))
                     Text(TTF("Version %@", S, Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"))
