@@ -103,7 +103,7 @@ struct MenuBarView: View {
             HStack {
                 Button(TT("Run Smart Care", S)) { show(page: "purr") }.buttonStyle(PinkButton())
                 Button(TT("Open LickMyPaw", S)) { show(page: nil) }.buttonStyle(SoftButton())
-            }
+            }.lineLimit(1).minimumScaleFactor(0.8)
             Button(TT("Quit LickMyPaw", S)) { NSApp.terminate(nil) }.buttonStyle(.plain).font(.system(size: 12, design: .rounded)).opacity(0.7)
         }
         .padding(16).frame(width: 320).foregroundStyle(.white)
