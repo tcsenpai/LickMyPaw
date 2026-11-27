@@ -176,7 +176,7 @@ struct Wrap<C: View>: View {
 
 /// Bubbles suite: a real double-click on each bubble, sent to an offscreen window, must open that bubble's folder (issue #1).
 enum BubblesSelfTest {
-    /// The selftest runs under dispatchMain, so AppKit only draws and delivers events while the run loop is pumped by hand.
+    /// The suite runs inside a main-queue task, so AppKit only draws and delivers events while the run loop is pumped by hand.
     private static func pump(_ s: TimeInterval) { RunLoop.main.run(until: Date().addingTimeInterval(s)) }
     @MainActor static func run(_ t: TestCtx) async {
         _ = NSApplication.shared; NSApp.setActivationPolicy(.prohibited)   // selftest has no app object; prohibited = no Dock icon, no focus steal

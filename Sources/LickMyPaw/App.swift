@@ -516,7 +516,9 @@ struct ContentView: View {
             }
             exit(0)
         }
-        if let i = CommandLine.arguments.firstIndex(of: "--selftest") { let only = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : nil; Task { @MainActor in await SelfTests.main(only: only) }; dispatchMain() }
+        if let i = CommandLine.arguments.firstIndex(of: "--selftest") { let only = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : nil; Task { @MainActor in await SelfTests.main(only: only) }
+            // not dispatchMain(): it ends the main thread and main-queue work then runs on a worker, where AppKit (bubbles suite) aborts
+            RunLoop.main.add(Timer(timeInterval: 1e9, repeats: false) { _ in }, forMode: .default); RunLoop.main.run() }
         if let i = CommandLine.arguments.firstIndex(of: "--demo-shots"), i + 1 < CommandLine.arguments.count { MainActor.assumeIsolated { Demo.shots(CommandLine.arguments[i + 1]) } }
         let pa = CommandLine.arguments   // headless page render: LickMyPaw --render-page cleanup|apps|settings|guide <out.png>
         if let i = pa.firstIndex(of: "--render-page"), i + 2 < pa.count {
