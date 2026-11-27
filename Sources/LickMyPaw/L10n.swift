@@ -36,7 +36,7 @@ func TTF(_ key: String, _ table: String, _ args: CVarArg...) -> String { String(
 extension L10n {
     /// --i18n-check: every table's key set and format specifiers (%d/%@/%lld...) must match en. Returns (tables, keys, one line per problem).
     static func parityReport() -> (Int, Int, [String]) {
-        let fm = FileManager.default, root = resourceBundle.bundleURL.path, tabs = ((try? fm.contentsOfDirectory(atPath: root + "/en.lproj")) ?? []).filter { $0.hasSuffix(".strings") }.sorted()
+        let fm = FileManager.default, root = (resourceBundle.resourceURL ?? resourceBundle.bundleURL).path, tabs = ((try? fm.contentsOfDirectory(atPath: root + "/en.lproj")) ?? []).filter { $0.hasSuffix(".strings") }.sorted()
         let spec = try! NSRegularExpression(pattern: "%(?:\\d+\\$)?[-+0# ]*\\d*(?:\\.\\d+)?(?:ll|l|h)?[@dDuUxXfegscCSpi]")
         let fs = { (s: String) -> [String] in let c = s.replacingOccurrences(of: "%%", with: ""); let m = spec.matches(in: c, range: NSRange(c.startIndex..., in: c)).map { String(c[Range($0.range, in: c)!]) }; return c.contains("$") ? m.sorted() : m }  // shortcut: positional args compared as a set
         var bad: [String] = [], n = 0
@@ -50,6 +50,7 @@ extension L10n {
                 for (k, v) in d.sorted(by: { $0.key < $1.key }) where en[k] != nil && fs(en[k]!) != fs(v) { bad.append("\(l)/\(t): format mismatch \"\(k)\" en=\(fs(en[k]!)) \(l)=\(fs(v))") }
             }
         }
+        if tabs.isEmpty { bad.append("no .strings tables found in \(root)/en.lproj: nothing was checked") }   // 0 tables is not a pass
         return (tabs.count, n, bad)
     }
 }
