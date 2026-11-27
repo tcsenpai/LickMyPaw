@@ -1,14 +1,14 @@
 import SwiftUI
 import AppKit
 
-enum Page { case home, prowl, cleanup, apps, clutter, performance, purr, protection, maintenance, privacy, shredder, assistant, settings }
+enum Page { case home, prowl, cleanup, apps, clutter, performance, purr, protection, maintenance, privacy, shredder, settings }
 
 /// Cross-module navigation without shared state: Nav.go("cleanup") from any view (used by Purr's "Review" buttons).
 enum Nav {
     static let notification = Notification.Name("LickMyPaw.navigate")
     static func go(_ page: String) { NotificationCenter.default.post(name: notification, object: nil, userInfo: ["page": page]) }
     static func page(named n: String) -> Page? {
-        ["home": .home, "prowl": .prowl, "cleanup": .cleanup, "apps": .apps, "clutter": .clutter, "performance": .performance, "purr": .purr, "protection": .protection, "maintenance": .maintenance, "privacy": .privacy, "shredder": .shredder, "assistant": .assistant, "settings": .settings][n]
+        ["home": .home, "prowl": .prowl, "cleanup": .cleanup, "apps": .apps, "clutter": .clutter, "performance": .performance, "purr": .purr, "protection": .protection, "maintenance": .maintenance, "privacy": .privacy, "shredder": .shredder, "settings": .settings][n]
     }
 }
 
@@ -194,6 +194,7 @@ struct ModuleCard: View {
 struct ContentView: View {
     @StateObject var m = Model()
     @State private var review = false
+    @State var showAssistant = false
 
     var stateKey: Int { m.current != nil ? 2 : (m.scanning ? 1 : 0) }
 
@@ -215,12 +216,23 @@ struct ContentView: View {
                         case .maintenance: MaintenanceView()
                         case .privacy: PrivacyView()
                         case .shredder: ShredderView()
-                        case .assistant: AssistantView()
                         case .performance: PerformanceView()
                         case .settings: SettingsView()
                         }
                     }.transition(.opacity.combined(with: .scale(scale: 0.985)))
                 }.frame(maxWidth: .infinity, maxHeight: .infinity).animation(spring, value: m.page)
+            }
+        }
+        .overlay(alignment: .bottomLeading) {
+            if showAssistant {
+                AssistantView(onClose: { withAnimation(spring) { showAssistant = false } })
+                    .frame(width: 410).frame(maxHeight: 560)
+                    .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Color(hex: 0x1d0b4f)))
+                    .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.white.opacity(0.16)))
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .shadow(color: .black.opacity(0.5), radius: 26, y: 10)
+                    .padding(.leading, 86).padding(.bottom, 16).padding(.top, 60)
+                    .transition(.scale(scale: 0.92, anchor: .bottomLeading).combined(with: .opacity))
             }
         }
         .preferredColorScheme(.dark)
@@ -245,37 +257,53 @@ struct ContentView: View {
         }.animation(spring, value: stateKey)
     }
 
+    /// Sidebar never scrolls: icon size and gaps shrink with the window height so every entry stays visible.
+    static func sidebarSlot(height: CGFloat, entries: Int = 14) -> (size: CGFloat, gap: CGFloat) {
+        let per = max(height - 52 - 14 - 9, 0) / CGFloat(entries)   // top inset, bottom inset, divider
+        let size = min(max(per * 0.8, 26), 44)
+        return (size, min(max(per - size, 2), 10))
+    }
+
     var sidebar: some View {
-        VStack(spacing: 10) {
-            ScrollView(showsIndicators: false) {   // 11 entries do not fit the minimum window height
-                VStack(spacing: 10) {
-                    navItem("house.fill", "Home", page: .home)
-                    navItem("circle.hexagongrid.fill", "Prowl", page: .prowl)
-                    navItem("trash.fill", "Cleanup", page: .cleanup)
-                    navItem("square.grid.2x2.fill", "Applications", page: .apps)
-                    navItem("sparkles", "Purr", page: .purr)
-                    navItem("shield.lefthalf.filled", "Protection", page: .protection)
-                    navItem("tray.full.fill", "Clutter", page: .clutter)
-                    navItem("bolt.fill", "Performance", page: .performance)
-                    navItem("wrench.and.screwdriver.fill", "Maintenance", page: .maintenance)
-                    navItem("hand.raised.fill", "Privacy", page: .privacy)
-                    navItem("flame.fill", "Shredder", page: .shredder)
-                    navItem("bubble.left.and.text.bubble.right.fill", "Assistant", page: .assistant)
-                }
-            }
-            Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1).padding(.vertical, 4)
-            TrashButton()
-            navItem("gearshape.fill", "Settings", page: .settings).padding(.bottom, 14)
-        }.padding(.top, 52).frame(width: 74).background(Color.black.opacity(0.18)).ignoresSafeArea()
+        GeometryReader { g in
+            let s = Self.sidebarSlot(height: g.size.height)
+            VStack(spacing: s.gap) {
+                navItem("house.fill", "Home", page: .home, size: s.size)
+                navItem("circle.hexagongrid.fill", "Prowl", page: .prowl, size: s.size)
+                navItem("trash.fill", "Cleanup", page: .cleanup, size: s.size)
+                navItem("square.grid.2x2.fill", "Applications", page: .apps, size: s.size)
+                navItem("sparkles", "Purr", page: .purr, size: s.size)
+                navItem("shield.lefthalf.filled", "Protection", page: .protection, size: s.size)
+                navItem("tray.full.fill", "Clutter", page: .clutter, size: s.size)
+                navItem("bolt.fill", "Performance", page: .performance, size: s.size)
+                navItem("wrench.and.screwdriver.fill", "Maintenance", page: .maintenance, size: s.size)
+                navItem("hand.raised.fill", "Privacy", page: .privacy, size: s.size)
+                navItem("flame.fill", "Shredder", page: .shredder, size: s.size)
+                Spacer(minLength: 0)
+                assistantButton(size: s.size)
+                Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1)
+                TrashButton(size: s.size)
+                navItem("gearshape.fill", "Settings", page: .settings, size: s.size)
+            }.frame(maxWidth: .infinity).padding(.top, 52).padding(.bottom, 14)
+        }.frame(width: 74).background(Color.black.opacity(0.18)).ignoresSafeArea()
+    }
+
+    func assistantButton(size: CGFloat) -> some View {
+        Button { withAnimation(spring) { showAssistant.toggle() } } label: {
+            Image(systemName: showAssistant ? "xmark" : "bubble.left.and.text.bubble.right.fill").font(.system(size: size * 0.38, weight: .semibold)).foregroundStyle(.white)
+                .frame(width: size, height: size)
+                .background(Circle().fill(LinearGradient(colors: [Color(hex: 0xFF3FA4), Color(hex: 0x9B4DFF)], startPoint: .topLeading, endPoint: .bottomTrailing)))
+                .shadow(color: Color(hex: 0xFF3FA4).opacity(0.35), radius: 8, y: 3)
+        }.buttonStyle(.plain).help(T("Assistant"))
     }
 
     static let future = [("sparkles", "Purr"), ("shield.lefthalf.filled", "Protection")]
 
-    func navItem(_ icon: String, _ title: String, page: Page?) -> some View {
+    func navItem(_ icon: String, _ title: String, page: Page?, size: CGFloat = 44) -> some View {
         let on = page != nil && m.page == page
         return Button { if let p = page { m.page = p } } label: {
-            Image(systemName: icon).font(.system(size: 18)).foregroundStyle(.white.opacity(page == nil ? 0.35 : 1))
-                .frame(width: 44, height: 44)
+            Image(systemName: icon).font(.system(size: size * 0.41)).foregroundStyle(.white.opacity(page == nil ? 0.35 : 1))
+                .frame(width: size, height: size)
                 .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white.opacity(on ? 0.22 : 0)))
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(on ? 0.25 : 0)))
                 .animation(spring, value: on)
@@ -536,12 +564,13 @@ struct ContentView: View {
                 case "privacy": inner = AnyView(PrivacyView())
                 case "shredder": inner = AnyView(ShredderView())
                 case "menubar": inner = AnyView(MenuBarView())
-                case "assistant", "assistant-off", "assistant-empty": inner = AnyView(AssistantView(m: AssistantModel.demo(available: pa[i + 1] != "assistant-off", empty: pa[i + 1] == "assistant-empty")))
+                case "assistant", "assistant-off", "assistant-empty": inner = AnyView(AssistantView(m: AssistantModel.demo(available: pa[i + 1] != "assistant-off", empty: pa[i + 1] == "assistant-empty"), onClose: {}))
+                case "window", "window-assistant": inner = AnyView(ContentView(showAssistant: pa[i + 1] == "window-assistant"))   // minimum window size: the sidebar must fit
                 default: inner = AnyView(FDAGuideView(onNotNow: {}, onClose: {}))
                 }
                 // Offscreen NSHostingView in a window that is never shown: draws ScrollViews/native controls too (ImageRenderer cannot).
                 let app = NSApplication.shared; app.setActivationPolicy(.prohibited)
-                let (w, h) = pa[i + 1] == "menubar" ? (320.0, 430.0) : (900.0, 600.0)   // the popover is rendered at its own size
+                let (w, h) = pa[i + 1] == "menubar" ? (320.0, 430.0) : pa[i + 1].hasPrefix("assistant") ? (410.0, 560.0) : pa[i + 1].hasPrefix("window") ? (980.0, 620.0) : (900.0, 600.0)
                 let v = ZStack { Background(); inner }.frame(width: w, height: h).preferredColorScheme(.dark)
                 let host = NSHostingView(rootView: v); host.frame = NSRect(x: 0, y: 0, width: w, height: h)
                 let win = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)

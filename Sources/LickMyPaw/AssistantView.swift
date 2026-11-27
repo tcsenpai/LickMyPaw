@@ -113,27 +113,29 @@ final class ToolUseLog: @unchecked Sendable {
 
 struct AssistantView: View {
     @ObservedObject var m = AssistantModel.shared
+    var onClose: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
             if m.availability == .available { chat } else { unavailable }
         }
-        .padding(20).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).foregroundStyle(.white)
+        .padding(16).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).foregroundStyle(.white)
         .onAppear { m.appear() }
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(A("Assistant")).font(.system(size: 30, weight: .bold, design: .rounded))
+                Text(A("Assistant")).font(.system(size: 20, weight: .bold, design: .rounded))
                 Text(m.engine == .cloud ? A("Private Cloud Compute. It only reads, it never deletes.") : A("Runs on this Mac. It only reads, it never deletes."))
-                    .font(.caption).opacity(0.7)
+                    .font(.caption2).opacity(0.7)
             }
             Spacer()
             if m.availability == .available && !m.messages.isEmpty {
-                Button { m.newConversation() } label: { Label(A("New conversation"), systemImage: "arrow.counterclockwise") }.buttonStyle(SoftButton()).disabled(m.busy)
+                Button { m.newConversation() } label: { Image(systemName: "arrow.counterclockwise") }.buttonStyle(SoftButton()).disabled(m.busy).help(A("New conversation"))
             }
+            Button { onClose() } label: { Image(systemName: "xmark") }.buttonStyle(SoftButton()).keyboardShortcut(.cancelAction)
         }
     }
 
@@ -175,7 +177,7 @@ struct AssistantView: View {
     @ViewBuilder private func bubble(_ c: ChatMessage) -> some View {
         switch c.role {
         case .user:
-            HStack { Spacer(minLength: 80); Text(c.text).textSelection(.enabled).padding(10)
+            HStack { Spacer(minLength: 40); Text(c.text).textSelection(.enabled).padding(10)
                 .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(hex: 0xFF3FA4).opacity(0.35))) }
         case .assistant:
             VStack(alignment: .leading, spacing: 6) {
@@ -184,7 +186,7 @@ struct AssistantView: View {
                 if !c.tools.isEmpty {
                     Label(TF2(A("Looked at: %@"), c.tools.map(AssistantModel.toolLabel).joined(separator: ", ")), systemImage: "eye").font(.caption2).opacity(0.6)
                 }
-            }.padding(10).frame(maxWidth: .infinity, alignment: .leading).glass(14).padding(.trailing, 60)
+            }.padding(10).frame(maxWidth: .infinity, alignment: .leading).glass(14).padding(.trailing, 24)
         case .notice:
             Label(c.text, systemImage: "info.circle").font(.caption).foregroundStyle(.orange)
         }
@@ -260,6 +262,11 @@ enum AssistantPageSelfTest {
         cm.send("y")
         for _ in 0..<50 where cm.busy { try? await Task.sleep(nanoseconds: 20_000_000) }
         t.check(cm.engine == .onDevice && cm.messages.last?.role == .notice && cm.messages.last?.text.contains("quotaLimitReached") == true, "cloud failure: never silent, the reason is shown and the header follows")
+        for h in [620.0, 700, 900] as [CGFloat] {
+            let sl = ContentView.sidebarSlot(height: h)
+            t.check(14 * sl.size + 13 * sl.gap + 52 + 14 + 9 <= h + 0.5 && sl.size >= 26, "sidebar fits without scrolling at \(Int(h)) px (icons \(Int(sl.size)) px)")
+        }
+        t.check(ContentView.sidebarSlot(height: 1000).size == 44, "sidebar keeps full-size icons when there is room")
         AppPrefs.assistantCloud = false   // a fresh install: preference never set
         let off = AssistantModel(cloudOffered: true) { cloud, _ in box.cloudAsked.append(cloud); return UnavailableBackend(.intelligenceOff) }
         off.appear()
