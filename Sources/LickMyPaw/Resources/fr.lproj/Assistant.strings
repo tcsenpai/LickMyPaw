@@ -38,3 +38,7 @@
 "Apple's safety filter stopped this answer. Try asking in a different way." = "Le filtre de sécurité d'Apple a arrêté cette réponse. Essayez de reformuler.";
 "Apple Intelligence does not support this language yet. Try English." = "Apple Intelligence ne prend pas encore en charge cette langue. Essayez en anglais.";
 "Something went wrong while answering. Try again." = "Un problème est survenu pendant la réponse. Réessayez.";
+"apps using memory" = "apps utilisant la mémoire";
+"Now answering with Private Cloud Compute. Earlier messages are not remembered." = "Private Cloud Compute répond maintenant. Les messages précédents ne sont pas mémorisés.";
+"Now answering on this Mac. Earlier messages are not remembered." = "Ce Mac répond maintenant. Les messages précédents ne sont pas mémorisés.";
+"Private Cloud Compute did not answer, so this Mac did. Reason: %@" = "Private Cloud Compute n'a pas répondu, ce Mac a donc répondu. Raison : %@";

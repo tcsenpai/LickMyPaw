@@ -38,3 +38,7 @@
 "Apple's safety filter stopped this answer. Try asking in a different way." = "Apple's safety filter stopped this answer. Try asking in a different way.";
 "Apple Intelligence does not support this language yet. Try English." = "Apple Intelligence does not support this language yet. Try English.";
 "Something went wrong while answering. Try again." = "Something went wrong while answering. Try again.";
+"apps using memory" = "apps using memory";
+"Now answering with Private Cloud Compute. Earlier messages are not remembered." = "Now answering with Private Cloud Compute. Earlier messages are not remembered.";
+"Now answering on this Mac. Earlier messages are not remembered." = "Now answering on this Mac. Earlier messages are not remembered.";
+"Private Cloud Compute did not answer, so this Mac did. Reason: %@" = "Private Cloud Compute did not answer, so this Mac did. Reason: %@";

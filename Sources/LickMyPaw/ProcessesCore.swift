@@ -41,12 +41,19 @@ enum ProcessGrouping {
         guard let i = comps.firstIndex(where: { $0.hasSuffix(".app") }) else { return nil }
         return "/" + comps[...i].joined(separator: "/")
     }
+    /// Executables named only by their version (…/claude/versions/2.1.331) are shown by the first folder with a real name.
+    static func readableName(_ path: String) -> String {
+        let parts = (path as NSString).pathComponents.filter { $0 != "/" }
+        guard let last = parts.last, !last.contains(where: \.isLetter) else { return parts.last ?? "" }
+        let skip: Set<String> = ["versions", "version", "bin", "current", "libexec"]
+        return parts.dropLast().reversed().first { $0.contains(where: \.isLetter) && !skip.contains($0.lowercased()) }.map { "\($0) \(last)" } ?? last
+    }
     static func group(_ procs: [ProcInfo], onlyUid: UInt32?) -> [ProcGroup] {
         var buckets: [String: [ProcInfo]] = [:]
         for p in procs where onlyUid == nil || p.uid == onlyUid { buckets[appBundle(p.path) ?? p.path, default: []].append(p) }
         return buckets.map { key, ps in
             let app = appBundle(ps[0].path) != nil
-            let name = app ? (key as NSString).lastPathComponent.replacingOccurrences(of: ".app", with: "") : (key as NSString).lastPathComponent
+            let name = app ? (key as NSString).lastPathComponent.replacingOccurrences(of: ".app", with: "") : readableName(key)
             return ProcGroup(id: key, name: name.isEmpty ? "?" : name, appPath: app ? key : nil, procs: ps)
         }.sorted { $0.total != $1.total ? $0.total > $1.total : $0.name < $1.name }
     }

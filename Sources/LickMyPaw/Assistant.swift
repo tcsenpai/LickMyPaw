@@ -58,6 +58,8 @@ protocol AssistantBackend: AnyObject {
     var availability: AssistantAvailability { get }
     /// The model the next answer comes from (nil when unavailable).
     var engine: AssistantEngine? { get }
+    /// Why Private Cloud Compute stopped answering (then this Mac answers). nil while the cloud works or is off.
+    var cloudFailure: String? { get }
     /// Loads the model ahead of the first question (cold start is seconds). No-op when unavailable.
     func prewarm()
     func respond(to prompt: String) async throws -> String
@@ -75,6 +77,8 @@ extension AssistantBackend {
 
 /// The conversation outgrew the model's context; the backend has already started a fresh one.
 struct AssistantContextFull: Error {}
+
+extension AssistantBackend { var cloudFailure: String? { nil } }
 
 struct AssistantUnavailable: Error, Equatable { let reason: AssistantAvailability }
 
@@ -101,7 +105,9 @@ final class UnavailableBackend: AssistantBackend {
 /// Scripted backend for tests: answers in order and records what it was asked.
 final class ScriptedBackend: AssistantBackend {
     var availability: AssistantAvailability = .available
-    var engine: AssistantEngine? { availability == .available ? .onDevice : nil }
+    var engineWhenAvailable: AssistantEngine = .onDevice
+    var engine: AssistantEngine? { availability == .available ? engineWhenAvailable : nil }
+    var cloudFailure: String?
     var replies: [String]
     private(set) var prompts: [String] = []
     private(set) var prewarmed = 0, resets = 0
@@ -124,7 +130,8 @@ final class FoundationModelsBackend: AssistantBackend {
     private let allowCloud: Bool
     private var session: LanguageModelSession?
     private var sessionEngine: AssistantEngine?
-    private var cloudFailed = false   // after a quota or network error, stay on-device until reset()
+    private(set) var cloudFailure: String?   // after a quota, network or entitlement error, stay on-device until reset()
+    private var cloudFailed: Bool { cloudFailure != nil }
     init(instructions: String, tools: [any Tool] = [], allowCloud: Bool = false) { self.instructions = instructions; self.tools = tools; self.allowCloud = allowCloud }
 
     var availability: AssistantAvailability { Self.map(SystemLanguageModel.default.availability) }
@@ -166,7 +173,7 @@ final class FoundationModelsBackend: AssistantBackend {
             if case LanguageModelSession.GenerationError.exceededContextWindowSize = error { reset(); throw AssistantContextFull() }
             guard sessionEngine == .cloud else { throw error }
             // shortcut: the on-device retry starts a fresh conversation (the 32k cloud transcript does not fit in ~4k); carry a summary if that hurts
-            cloudFailed = true
+            cloudFailure = String(describing: error).prefix(200).description
             return try await stream(prompt, onPartial)
         }
     }
@@ -175,7 +182,7 @@ final class FoundationModelsBackend: AssistantBackend {
         for try await snap in current().streamResponse(to: prompt) { last = snap.content; await onPartial(last) }
         return last
     }
-    func reset() { session = nil; sessionEngine = nil; cloudFailed = false }
+    func reset() { session = nil; sessionEngine = nil; cloudFailure = nil }
 }
 #endif
 

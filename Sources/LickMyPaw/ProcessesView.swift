@@ -107,6 +107,8 @@ enum ProcessesSelfTest {
         func terminateGUI(_ pid: Int32) -> Bool { gui.append(pid); return true }
         func sigterm(_ pid: Int32) -> Bool { term.append(pid); return true } }
     @MainActor static func run(_ t: TestCtx) async {
+        t.check(ProcessGrouping.readableName("/Users/x/.local/share/claude/versions/2.1.331") == "claude 2.1.331" && ProcessGrouping.readableName("/opt/homebrew/bin/node") == "node"
+                && ProcessGrouping.readableName("/x/bin/1.0") == "x 1.0", "names: version-only executables get their folder's name")
         let me: UInt32 = 501, own: Int32 = 4242
         let ps = [
             ProcInfo(pid: 100, uid: me, path: "/Applications/Foo.app/Contents/MacOS/Foo", resident: 300),

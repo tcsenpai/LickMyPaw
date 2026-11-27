@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 #if canImport(FoundationModels)
 import FoundationModels
 #endif
@@ -17,6 +18,7 @@ struct AssistantData: @unchecked Sendable {
     var leftovers: @Sendable (AppInfo) -> [Leftover] = { LeftoverMatcher.find(for: $0) }
     var startup: @Sendable () -> [StartupItem] = { StartupScanner.scan(.real(), control: SystemLaunchAgentControl()) }
     var memory: @Sendable () -> (used: Int64, total: Int64, level: Int) = { let m = SysStats.memory(); return (m.used, m.total, SysStats.pressureLevel()) }
+    var processes: @Sendable () -> [ProcGroup] = { ProcessGrouping.group(LibprocProvider().snapshot(), onlyUid: nil) }
     var now: @Sendable () -> Date = { Date() }
 }
 
@@ -100,6 +102,23 @@ enum AssistantFacts {
         }.joined(separator: "\n")
     }
 
+    static func topMemoryApps(_ d: AssistantData, limit: Int) -> String {
+        let g = d.processes().filter { $0.total > 0 }, k = min(max(limit, 1), 10)
+        guard !g.isEmpty else { return "No process information available." }
+        return "Apps and processes using the most memory. Quitting them is done by the user in the Performance page, Processes tab:\n" + g.prefix(k).map {
+            "- \"\(clean($0.name))\" \(bytes(Int64($0.total)))\($0.procs.count > 1 ? ", \($0.procs.count) processes" : "")"
+        }.joined(separator: "\n")
+    }
+
+    /// The model drifts to English after English tool output. Each prompt names the reply language: the question's own when it is
+    /// clear, otherwise the app's language. Returned as an English name ("Italian") for the hint.
+    static func replyLanguage(for text: String, ui: String) -> String {
+        let r = NLLanguageRecognizer(); r.languageConstraints = [.english, .italian, .french, .spanish, .german, .portuguese, .dutch]; r.processString(text)
+        let top = r.languageHypotheses(withMaximum: 1).first
+        let code = text.split(separator: " ").count >= 3 && (top?.value ?? 0) >= 0.6 ? top!.key.rawValue : ui
+        return Locale(identifier: "en").localizedString(forLanguageCode: code) ?? "English"
+    }
+
     static func memoryStatus(_ d: AssistantData) -> String {
         let m = d.memory()
         let p = m.level >= 4 ? "critical" : m.level >= 2 ? "warning" : "normal"
@@ -113,7 +132,7 @@ enum AssistantFacts {
 enum AssistantToolbox {
     static func make(_ d: AssistantData, onUse: @escaping @Sendable (String) -> Void) -> [any Tool] {
         [DiskSummaryTool(d: d, onUse: onUse), TopSpaceHogsTool(d: d, onUse: onUse), CleanupCandidatesTool(d: d, onUse: onUse), ListAppsTool(d: d, onUse: onUse),
-         AppLeftoversTool(d: d, onUse: onUse), StartupItemsTool(d: d, onUse: onUse), MemoryStatusTool(d: d, onUse: onUse)]
+         AppLeftoversTool(d: d, onUse: onUse), StartupItemsTool(d: d, onUse: onUse), MemoryStatusTool(d: d, onUse: onUse), TopMemoryAppsTool(d: d, onUse: onUse)]
     }
 }
 
@@ -165,6 +184,12 @@ enum AssistantToolbox {
     @Generable struct Arguments {}
     func call(arguments: Arguments) async throws -> String { onUse(name); return AssistantFacts.memoryStatus(d) }
 }
+@available(macOS 26, *) struct TopMemoryAppsTool: Tool {
+    let name = "top_memory_apps", description = "Which apps and processes use the most memory (RAM) right now."
+    let d: AssistantData, onUse: @Sendable (String) -> Void
+    @Generable struct Arguments { @Guide(description: "How many apps to list", .range(1...10)) var limit: Int }
+    func call(arguments: Arguments) async throws -> String { onUse(name); return AssistantFacts.topMemoryApps(d, limit: arguments.limit) }
+}
 #endif
 
 /// Tools suite: every fact built from fixtures, injection-shaped names neutralised, places locked down.
@@ -189,6 +214,8 @@ enum AssistantToolsSelfTest {
         d.startup = { [StartupItem(path: "/p1", kind: .userAgent, label: "com.vendor.helper", program: "/x", runAtLoad: true, keepAlive: true, plistDisabled: false, appName: "Helper", appPath: nil, vendor: "Vendor", broken: false),
                        StartupItem(path: "/p2", kind: .systemDaemon, label: "com.apple.thing", program: "/y", runAtLoad: true, keepAlive: false, plistDisabled: false, appName: nil, appPath: nil, vendor: "Apple", broken: false)] }
         d.memory = { (12_000_000_000, 16_000_000_000, 2) }
+        d.processes = { [ProcGroup(id: "/Applications/Safari.app", name: "Safari", appPath: "/Applications/Safari.app", procs: [ProcInfo(pid: 1, uid: 501, path: "/a", resident: 3_000_000_000), ProcInfo(pid: 2, uid: 501, path: "/b", resident: 1_000_000_000)]),
+                         ProcGroup(id: "/usr/bin/x", name: "x", appPath: nil, procs: [ProcInfo(pid: 3, uid: 501, path: "/usr/bin/x", resident: 500_000_000)])] }
         typealias F = AssistantFacts
 
         t.check(F.diskSummary(d).contains("25") && F.diskSummary(d).contains("75% used"), "disk summary: free, total, percent"); t.reachedCode()
@@ -207,13 +234,17 @@ enum AssistantToolsSelfTest {
         let st = F.startupItems(d)
         t.check(st.contains("Helper") && st.contains("runs at login") && st.contains("kept alive") && !st.contains("com.apple.thing") && st.hasPrefix("1 third-party"), "startup: third-party only, flags shown")
         t.check(F.memoryStatus(d).contains("pressure warning"), "memory: pressure level named")
+        let tm = F.topMemoryApps(d, limit: 1)
+        t.check(tm.contains("\"Safari\"") && tm.contains("2 processes") && !tm.contains("\"x\"") && tm.contains("Processes tab"), "memory apps: grouped per app, biggest first, limited, where to act")
+        t.check(F.replyLanguage(for: "Come sta andando la memoria?", ui: "en") == "Italian" && F.replyLanguage(for: "who is using the most ram", ui: "it") == "English", "reply language: the question's language when clear")
+        t.check(F.replyLanguage(for: "ok", ui: "fr") == "French" && F.replyLanguage(for: "e chi la usa", ui: "it") == "Italian", "reply language: short or unclear falls back to the app language")
         t.check(F.clean(String(repeating: "a", count: 200)).count == 60 && F.clean("a\u{0}b\tc\"d") == "a b c'd", "clean: capped, control chars and quotes neutralised")
         #if canImport(FoundationModels)
         if #available(macOS 26, *) {
             final class Log: @unchecked Sendable { var names: [String] = [] }
             let log = Log()
             let tools = AssistantToolbox.make(d) { n in log.names.append(n) }
-            t.check(Set(tools.map(\.name)) == ["disk_summary", "top_space_hogs", "cleanup_candidates", "list_apps", "app_leftovers", "startup_items", "memory_status"], "toolbox: the seven read-only tools, nothing else")
+            t.check(Set(tools.map(\.name)) == ["disk_summary", "top_space_hogs", "cleanup_candidates", "list_apps", "app_leftovers", "startup_items", "memory_status", "top_memory_apps"], "toolbox: the eight read-only tools, nothing else")
             let r = try? await DiskSummaryTool(d: d) { n in log.names.append(n) }.call(arguments: .init())
             t.check(r == F.diskSummary(d) && log.names == ["disk_summary"], "toolbox: a call returns the fact and reports its use"); t.reachedCode()
         }
@@ -226,6 +257,11 @@ enum AssistantToolsSelfTest {
                 let a = (try? await b.respond(to: "How much free space is left on my startup disk?")) ?? ""
                 print("  info live answer: \(a.replacingOccurrences(of: "\n", with: " ").prefix(160)) | tools: \(used.take())")
                 t.check(used.take().contains("disk_summary") && !a.isEmpty, "live: the on-device model calls disk_summary on its own and answers")
+                b.reset(); used.clear()
+                let q = "Quali app usano più RAM adesso?"
+                let it = (try? await b.respond(to: q + "\n\n(Reply in \(F.replyLanguage(for: q, ui: "en")).)")) ?? ""
+                print("  info live answer (it): \(it.replacingOccurrences(of: "\n", with: " ").prefix(200)) | tools: \(used.take())")
+                t.check(used.take().contains("top_memory_apps") && !it.isEmpty, "live: an Italian memory question reaches top_memory_apps")
             } else { print("  info live tool check skipped: \(b.availability)") }
         }
     }
