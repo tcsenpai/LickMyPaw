@@ -2,6 +2,14 @@
 
 All notable changes to LickMyPaw. Versions follow [semver](https://semver.org/). Builds are unsigned and not notarized until 1.0.0.
 
+## [Unreleased]
+
+### Fixed
+- **Updates tab:** Homebrew casks are matched to apps by the app each cask actually installed (from Homebrew's install receipt), not by guessing from the app name. Casks whose app has a different name now show their updates, and a cask can no longer claim an unrelated app that happens to share its name. Casks installed by old Homebrew versions without a receipt still fall back to the name.
+
+### Changed
+- `--i18n-check` now checks every translation table against English: missing or extra keys and mismatched format placeholders. It exits with an error when anything is off.
+
 ## [0.2.1] - 2026-11-27
 
 ### Fixed
