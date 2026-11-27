@@ -514,7 +514,8 @@ struct ContentView: View {
                 let g = { (k: String) in NSLocalizedString(k, bundle: b, comment: "") }
                 print(l, "|", g("Start Over"), "|", g("Review and Remove"), "|", g("Other items"), "|", String(format: g("%d small files"), 3))
             }
-            exit(0)
+            let (t, n, bad) = L10n.parityReport(); bad.forEach { print($0) }
+            print("i18n: \(t) tables, \(n) keys, \(bad.count) problems"); exit(bad.isEmpty ? 0 : 1)
         }
         if let i = CommandLine.arguments.firstIndex(of: "--selftest") { let only = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : nil; Task { @MainActor in await SelfTests.main(only: only) }
             // not dispatchMain(): it ends the main thread and main-queue work then runs on a worker, where AppKit (bubbles suite) aborts

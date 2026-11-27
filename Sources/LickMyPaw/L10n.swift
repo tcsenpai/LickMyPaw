@@ -32,3 +32,24 @@ func TF(_ key: String, _ args: CVarArg...) -> String { String(format: T(key), ar
 /// Per-module string tables (Resources/<lang>.lproj/<Table>.strings) so parallel work never conflicts in Localizable.strings.
 func TT(_ key: String, _ table: String) -> String { NSLocalizedString(key, tableName: table, bundle: L10n.bundle, comment: "") }
 func TTF(_ key: String, _ table: String, _ args: CVarArg...) -> String { String(format: TT(key, table), arguments: args) }
+
+extension L10n {
+    /// --i18n-check: every table's key set and format specifiers (%d/%@/%lld...) must match en. Returns (tables, keys, one line per problem).
+    static func parityReport() -> (Int, Int, [String]) {
+        let fm = FileManager.default, root = resourceBundle.bundleURL.path, tabs = ((try? fm.contentsOfDirectory(atPath: root + "/en.lproj")) ?? []).filter { $0.hasSuffix(".strings") }.sorted()
+        let spec = try! NSRegularExpression(pattern: "%(?:\\d+\\$)?[-+0# ]*\\d*(?:\\.\\d+)?(?:ll|l|h)?[@dDuUxXfegscCSpi]")
+        let fs = { (s: String) -> [String] in let c = s.replacingOccurrences(of: "%%", with: ""); let m = spec.matches(in: c, range: NSRange(c.startIndex..., in: c)).map { String(c[Range($0.range, in: c)!]) }; return c.contains("$") ? m.sorted() : m }  // shortcut: positional args compared as a set
+        var bad: [String] = [], n = 0
+        for t in tabs {
+            guard let en = NSDictionary(contentsOfFile: "\(root)/en.lproj/\(t)") as? [String: String] else { bad.append("en/\(t): unreadable"); continue }
+            n += en.count
+            for l in ["it", "fr", "es"] {
+                guard let d = NSDictionary(contentsOfFile: "\(root)/\(l).lproj/\(t)") as? [String: String] else { bad.append("\(l)/\(t): missing or unreadable table"); continue }
+                for k in Set(en.keys).subtracting(d.keys).sorted() { bad.append("\(l)/\(t): missing key \"\(k)\"") }
+                for k in Set(d.keys).subtracting(en.keys).sorted() { bad.append("\(l)/\(t): extra key \"\(k)\"") }
+                for (k, v) in d.sorted(by: { $0.key < $1.key }) where en[k] != nil && fs(en[k]!) != fs(v) { bad.append("\(l)/\(t): format mismatch \"\(k)\" en=\(fs(en[k]!)) \(l)=\(fs(v))") }
+            }
+        }
+        return (tabs.count, n, bad)
+    }
+}
