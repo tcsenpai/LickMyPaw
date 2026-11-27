@@ -1,14 +1,14 @@
 import SwiftUI
 import AppKit
 
-enum Page { case home, prowl, cleanup, apps, clutter, performance, purr, protection, maintenance, privacy, shredder, settings }
+enum Page { case home, prowl, cleanup, apps, clutter, performance, purr, protection, maintenance, privacy, shredder, assistant, settings }
 
 /// Cross-module navigation without shared state: Nav.go("cleanup") from any view (used by Purr's "Review" buttons).
 enum Nav {
     static let notification = Notification.Name("LickMyPaw.navigate")
     static func go(_ page: String) { NotificationCenter.default.post(name: notification, object: nil, userInfo: ["page": page]) }
     static func page(named n: String) -> Page? {
-        ["home": .home, "prowl": .prowl, "cleanup": .cleanup, "apps": .apps, "clutter": .clutter, "performance": .performance, "purr": .purr, "protection": .protection, "maintenance": .maintenance, "privacy": .privacy, "shredder": .shredder, "settings": .settings][n]
+        ["home": .home, "prowl": .prowl, "cleanup": .cleanup, "apps": .apps, "clutter": .clutter, "performance": .performance, "purr": .purr, "protection": .protection, "maintenance": .maintenance, "privacy": .privacy, "shredder": .shredder, "assistant": .assistant, "settings": .settings][n]
     }
 }
 
@@ -215,6 +215,7 @@ struct ContentView: View {
                         case .maintenance: MaintenanceView()
                         case .privacy: PrivacyView()
                         case .shredder: ShredderView()
+                        case .assistant: AssistantView()
                         case .performance: PerformanceView()
                         case .settings: SettingsView()
                         }
@@ -259,6 +260,7 @@ struct ContentView: View {
                     navItem("wrench.and.screwdriver.fill", "Maintenance", page: .maintenance)
                     navItem("hand.raised.fill", "Privacy", page: .privacy)
                     navItem("flame.fill", "Shredder", page: .shredder)
+                    navItem("bubble.left.and.text.bubble.right.fill", "Assistant", page: .assistant)
                 }
             }
             Rectangle().fill(.white.opacity(0.12)).frame(width: 28, height: 1).padding(.vertical, 4)
@@ -534,6 +536,7 @@ struct ContentView: View {
                 case "privacy": inner = AnyView(PrivacyView())
                 case "shredder": inner = AnyView(ShredderView())
                 case "menubar": inner = AnyView(MenuBarView())
+                case "assistant", "assistant-off", "assistant-empty": inner = AnyView(AssistantView(m: AssistantModel.demo(available: pa[i + 1] != "assistant-off", empty: pa[i + 1] == "assistant-empty")))
                 default: inner = AnyView(FDAGuideView(onNotNow: {}, onClose: {}))
                 }
                 // Offscreen NSHostingView in a window that is never shown: draws ScrollViews/native controls too (ImageRenderer cannot).

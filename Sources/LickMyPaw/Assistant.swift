@@ -61,9 +61,20 @@ protocol AssistantBackend: AnyObject {
     /// Loads the model ahead of the first question (cold start is seconds). No-op when unavailable.
     func prewarm()
     func respond(to prompt: String) async throws -> String
+    /// Same, reporting the text generated so far while it streams.
+    func respond(to prompt: String, onPartial: @escaping @MainActor (String) -> Void) async throws -> String
     /// Drops the conversation (the on-device context is small: ~4k tokens).
     func reset()
 }
+
+extension AssistantBackend {
+    func respond(to prompt: String, onPartial: @escaping @MainActor (String) -> Void) async throws -> String {
+        let r = try await respond(to: prompt); await onPartial(r); return r
+    }
+}
+
+/// The conversation outgrew the model's context; the backend has already started a fresh one.
+struct AssistantContextFull: Error {}
 
 struct AssistantUnavailable: Error, Equatable { let reason: AssistantAvailability }
 
@@ -94,11 +105,12 @@ final class ScriptedBackend: AssistantBackend {
     var replies: [String]
     private(set) var prompts: [String] = []
     private(set) var prewarmed = 0, resets = 0
+    var onRespond: () -> Void = {}   // lets a test act like a tool call happening during the answer
     init(_ replies: [String]) { self.replies = replies }
     func prewarm() { prewarmed += 1 }
     func respond(to prompt: String) async throws -> String {
         guard availability == .available else { throw AssistantUnavailable(reason: availability) }
-        prompts.append(prompt)
+        prompts.append(prompt); onRespond()
         return replies.isEmpty ? "" : replies.removeFirst()
     }
     func reset() { prompts = []; resets += 1 }
@@ -146,14 +158,22 @@ final class FoundationModelsBackend: AssistantBackend {
         session = s; sessionEngine = e; return s
     }
     func prewarm() { if availability == .available { current().prewarm() } }
-    func respond(to prompt: String) async throws -> String {
+    func respond(to prompt: String) async throws -> String { try await respond(to: prompt) { _ in } }
+    func respond(to prompt: String, onPartial: @escaping @MainActor (String) -> Void) async throws -> String {
         guard availability == .available else { throw AssistantUnavailable(reason: availability) }
-        do { return try await current().respond(to: prompt).content }
-        catch where sessionEngine == .cloud {
+        do { return try await stream(prompt, onPartial) }
+        catch {
+            if case LanguageModelSession.GenerationError.exceededContextWindowSize = error { reset(); throw AssistantContextFull() }
+            guard sessionEngine == .cloud else { throw error }
             // shortcut: the on-device retry starts a fresh conversation (the 32k cloud transcript does not fit in ~4k); carry a summary if that hurts
             cloudFailed = true
-            return try await current().respond(to: prompt).content
+            return try await stream(prompt, onPartial)
         }
+    }
+    private func stream(_ prompt: String, _ onPartial: @escaping @MainActor (String) -> Void) async throws -> String {
+        var last = ""
+        for try await snap in current().streamResponse(to: prompt) { last = snap.content; await onPartial(last) }
+        return last
     }
     func reset() { session = nil; sessionEngine = nil; cloudFailed = false }
 }
@@ -168,11 +188,36 @@ enum Assistant {
         #endif
     }
 
+    /// Private Cloud Compute is offered (as an opt-in) only when this build and this Mac both have it.
+    static var cloudOffered: Bool {
+        #if canImport(FoundationModels)
+        if #available(macOS 26, *) { return FoundationModelsBackend.cloudAvailable }
+        #endif
+        return false
+    }
+
+    /// A model error as an English key in the Assistant table (shown in the chat, never a raw error dump).
+    static func friendly(_ e: Error) -> String {
+        if e is AssistantContextFull { return "The conversation got too long, so a new one was started. Ask again." }
+        if let u = e as? AssistantUnavailable { return u.reason.title }
+        #if canImport(FoundationModels)
+        if #available(macOS 26, *), let g = e as? LanguageModelSession.GenerationError {
+            switch g {
+            case .guardrailViolation: return "Apple's safety filter stopped this answer. Try asking in a different way."
+            case .unsupportedLanguageOrLocale: return "Apple Intelligence does not support this language yet. Try English."
+            case .exceededContextWindowSize: return "The conversation got too long, so a new one was started. Ask again."
+            default: break
+            }
+        }
+        #endif
+        return "Something went wrong while answering. Try again."
+    }
+
     /// The backend for this Mac: the real model when everything lines up, otherwise one that explains why not.
-    static func makeBackend(instructions: String, allowCloud: Bool = false) -> AssistantBackend {
+    static func makeBackend(instructions: String, data: AssistantData? = nil, onToolUse: @escaping @Sendable (String) -> Void = { _ in }, allowCloud: Bool = false) -> AssistantBackend {
         #if canImport(FoundationModels)
         if #available(macOS 26, *) {
-            let b = FoundationModelsBackend(instructions: instructions, allowCloud: allowCloud)
+            let b = FoundationModelsBackend(instructions: instructions, tools: data.map { AssistantToolbox.make($0, onUse: onToolUse) } ?? [], allowCloud: allowCloud)
             return b.availability == .available ? b : UnavailableBackend(b.availability)
         }
         return UnavailableBackend(.osTooOld)

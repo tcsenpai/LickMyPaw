@@ -23,6 +23,7 @@ enum AppPrefs {
     static var menuBar: Bool { get { bool("menubar.enabled", true) } set { d.set(newValue, forKey: "menubar.enabled") } }
     static var notify: Bool { get { bool("notify.enabled", false) } set { d.set(newValue, forKey: "notify.enabled") } }
     static var updateAuto: Bool { get { bool("update.auto", true) } set { d.set(newValue, forKey: "update.auto") } }
+    static var assistantCloud: Bool { get { bool("assistant.cloud", false) } set { d.set(newValue, forKey: "assistant.cloud") } }   // Private Cloud Compute opt-in, off by default
     static var config: NotifyConfig {
         NotifyConfig(enabled: notify, diskPercent: num("notify.diskPercent", 10), diskGB: num("notify.diskGB", 10), trashGB: num("notify.trashGB", 5))
     }
