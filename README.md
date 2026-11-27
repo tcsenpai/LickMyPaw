@@ -50,6 +50,10 @@ Mac cleaners are useful, but the good ones are paid, closed, and ask for deep ac
     <td><img src="assets/screenshots/12-shredder.png" alt="Shredder"></td>
     <td><img src="assets/screenshots/13-updates.png" alt="Applications, Updates tab"></td>
   </tr>
+  <tr>
+    <td><img src="assets/screenshots/15-assistant.png" alt="The assistant"></td>
+    <td></td>
+  </tr>
 </table>
 
 <p align="center">
@@ -90,6 +94,7 @@ xattr -dr com.apple.quarantine /Applications/LickMyPaw.app
 | **Maintenance** | Flush the DNS cache, reindex Spotlight, rebuild the Launch Services database, clear font caches, verify the startup disk (read-only), and list or thin local Time Machine snapshots. Every task shows its exact command first. Admin tasks use the standard macOS password prompt. |
 | **Privacy** | Finds Safari, Chrome, Edge, Brave, Arc and Firefox caches, history, cookies and download lists, plus Recent Items, the Quick Look cache and the download quarantine log. Shell history is opt-in. The browser must be quit first, everything goes to the Trash, and cookies are unchecked by default. Safari needs Full Disk Access. |
 | **Shredder** | Overwrites files with random data and then zeros before deleting them. It cannot be undone. See the limit below. |
+| **Assistant** | A chat bubble at the bottom of the sidebar (macOS 26 or later with Apple Intelligence). Ask what takes up space, what can be cleaned, which apps you no longer use, what starts at login or which apps use the most memory. It runs on Apple's on-device model, reads only sizes, names and dates through eight fixed read-only tools, never file contents, and cannot delete anything: it tells you which page does. It answers in the language you ask in. Without Apple Intelligence it explains why and links to the right System Settings pane. |
 | **Trash button** | Always in the sidebar. Shows the Trash size, opens it, and empties it after asking. |
 | **Menu bar** | A paw icon with free disk, memory pressure, CPU load and the Trash (with Empty Trash), plus shortcuts to Smart Care and the app. It only measures while the menu is open. Can be hidden in Settings. |
 | **Settings** | Language, menu bar and launch at login, optional notifications (disk almost full, big Trash), updates, excluded folders, and a history of actions with Undo. |
@@ -163,7 +168,7 @@ The suites run on throwaway folders and a fake home. They never touch your files
 
 ## Roadmap
 
-Still missing: an on-device assistant built on Apple's Foundation Models with a small read-only toolbox that can only propose actions; Developer ID signing and notarization, with Sparkle based updates, planned for 1.0.0 (until then the built-in updater checks GitHub Releases and verifies the SHA-256); and a real-time malware monitor, which needs the Endpoint Security entitlement from Apple.
+Still missing: letting the assistant propose a cleanup that opens the usual Review sheet (today it only points you to the right page); Developer ID signing and notarization, with Sparkle based updates, planned for 1.0.0 (until then the built-in updater checks GitHub Releases and verifies the SHA-256); and a real-time malware monitor, which needs the Endpoint Security entitlement from Apple.
 
 Known limits: the Shredder overwrites a file once with random data and once with zeros, but on APFS (copy-on-write, snapshots) and on SSDs (wear levelling) that does not guarantee every copy of the data is gone. It stops casual recovery; for real protection use FileVault. Builds are Apple Silicon only, hard links and APFS clones are counted approximately, and undoing a removal does not put files back into lists you already scanned until you rescan.
 

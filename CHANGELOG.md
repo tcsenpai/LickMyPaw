@@ -2,7 +2,7 @@
 
 All notable changes to LickMyPaw. Versions follow [semver](https://semver.org/). Builds are unsigned and not notarized until 1.0.0.
 
-## [Unreleased]
+## [0.3.0] - 2026-11-27
 
 ### Added
 - **Assistant (macOS 26 and later, with Apple Intelligence).** A chat bubble at the bottom of the sidebar opens an assistant over any page. Ask what takes up space, what can be cleaned, which apps you no longer use, what starts at login or which apps use the most memory. It runs on Apple's on-device model, reads only sizes, names and dates through eight fixed read-only tools, never what is inside your files, and cannot delete anything: it points you to the page that does. Answers come in the language of your question. On Macs without it, the bubble explains why and, when you can fix it, opens the right System Settings pane.

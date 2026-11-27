@@ -279,6 +279,17 @@ enum AssistantPageSelfTest {
 }
 
 extension AssistantModel {
+    /// Screenshots (--demo-shots): a fixed conversation over the demo data, never the real model.
+    static let forDemo: AssistantModel = {
+        let m = AssistantModel(cloudOffered: false) { _, _ in ScriptedBackend([]) }
+        m.appear()
+        m.messages = [ChatMessage(role: .user, text: "What can I safely clean?"),
+                      ChatMessage(role: .assistant, text: "About **7.3 GB** can usually go:\n- Xcode DerivedData: 3.1 GB, low risk\n- User caches: 2.7 GB, low risk\n- npm cache: 730 MB, low risk\n\nOpen **Cleanup** to review and remove them. Everything goes to the Trash first.", tools: ["cleanup_candidates"]),
+                      ChatMessage(role: .user, text: "Which apps use the most memory?"),
+                      ChatMessage(role: .assistant, text: "Right now:\n- Safari: 3.2 GB (12 processes)\n- Xcode: 2.4 GB\n- Slack: 1.1 GB\n\nMemory pressure is normal. You can quit apps in **Performance**, Processes tab.", tools: ["top_memory_apps", "memory_status"])]
+        return m
+    }()
+
     /// Headless render only (--render-page assistant|assistant-off): scripted backend, sample chat, no model and no disk access.
     static func demo(available: Bool, empty: Bool = false) -> AssistantModel {
         let m = AssistantModel(cloudOffered: true) { _, _ in available ? ScriptedBackend([]) as AssistantBackend : UnavailableBackend(.intelligenceOff) }

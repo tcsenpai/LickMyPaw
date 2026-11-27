@@ -225,7 +225,7 @@ struct ContentView: View {
         }
         .overlay(alignment: .bottomLeading) {
             if showAssistant {
-                AssistantView(onClose: { withAnimation(spring) { showAssistant = false } })
+                AssistantView(m: Demo.enabled ? AssistantModel.forDemo : AssistantModel.shared, onClose: { withAnimation(spring) { showAssistant = false } })
                     .frame(width: 410).frame(maxHeight: 560)
                     .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Color(hex: 0x1d0b4f)))
                     .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.white.opacity(0.16)))

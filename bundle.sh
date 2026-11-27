@@ -3,7 +3,7 @@
 set -e
 cd "$(dirname "$0")"
 swift build -c release
-VER=${VERSION:-0.2.1}
+VER=${VERSION:-0.3.0}
 APP=LickMyPaw.app
 rm -rf $APP && mkdir -p $APP/Contents/MacOS $APP/Contents/Resources
 cp .build/release/LickMyPaw $APP/Contents/MacOS/

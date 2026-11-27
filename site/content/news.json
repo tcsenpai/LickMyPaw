@@ -2,6 +2,25 @@
   "_schema": "Newest entry first. type: 'release' | 'news'. date: YYYY-MM-DD. version: optional, e.g. 'v0.2.0'. items: optional list of plain-text bullets. link: optional {label, url}.",
   "entries": [
     {
+      "date": "2026-11-27",
+      "type": "release",
+      "version": "v0.3.0",
+      "title": "An assistant that runs on your Mac",
+      "summary": "A chat bubble in the sidebar answers questions about your disk, apps, startup items and memory, using Apple's on-device model and LickMyPaw's own read-only tools. Unsigned build, Apple Silicon, macOS 13 or later; the assistant needs macOS 26 with Apple Intelligence.",
+      "items": [
+        "Assistant: ask what takes up space, what can be cleaned, which apps you no longer use, what starts at login or what uses memory",
+        "It reads sizes, names and dates only, never file contents, and cannot delete anything",
+        "Answers in the language you ask in. Without Apple Intelligence it explains why and links to System Settings",
+        "The sidebar no longer scrolls: icons shrink to fit the window",
+        "Updates tab matches Homebrew casks by the app they installed, not by name",
+        "Fixed in 0.2.1: double-clicking a bubble in Prowl on macOS 15 opened the wrong folder"
+      ],
+      "link": {
+        "label": "Release notes and download",
+        "url": "https://github.com/tcsenpai/LickMyPaw/releases/tag/v0.3.0"
+      }
+    },
+    {
       "date": "2026-11-26",
       "type": "release",
       "version": "v0.2.0",
