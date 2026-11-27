@@ -62,6 +62,7 @@ enum TrashBin {
 }
 
 struct TrashButton: View {
+    var size: CGFloat = 44
     @ObservedObject var m = TrashModel.shared
     @State private var open = false
     @State private var confirm = false
@@ -69,8 +70,8 @@ struct TrashButton: View {
     var body: some View {
         Button { open.toggle() } label: {
             ZStack(alignment: .topTrailing) {
-                Image(systemName: (m.size ?? 0) > 0 ? "trash.fill" : "trash").font(.system(size: 18)).foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
+                Image(systemName: (m.size ?? 0) > 0 ? "trash.fill" : "trash").font(.system(size: size * 0.41)).foregroundStyle(.white)
+                    .frame(width: size, height: size)
                     .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white.opacity(open ? 0.22 : 0)))
                 if let s = m.size, s > 0 {
                     Text(fmt(s)).font(.system(size: 9, weight: .bold, design: .rounded)).foregroundStyle(.white)

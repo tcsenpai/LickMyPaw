@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15          # Apple Silicon runner
+    runs-on: macos-26          # Apple Silicon; Xcode 26.6 default, needed for FoundationModels (assistant)
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
