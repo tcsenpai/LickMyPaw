@@ -1,0 +1,12 @@
+"The assistant is ready" = "L'assistente è pronto";
+"This version of LickMyPaw was built without the assistant" = "Questa versione di LickMyPaw è stata compilata senza l'assistente";
+"The assistant needs macOS 26 or later" = "L'assistente richiede macOS 26 o successivo";
+"This Mac does not support Apple Intelligence" = "Questo Mac non supporta Apple Intelligence";
+"Apple Intelligence is turned off" = "Apple Intelligence è disattivata";
+"Apple Intelligence is still getting ready" = "Apple Intelligence si sta ancora preparando";
+"The assistant is not available right now" = "L'assistente non è disponibile in questo momento";
+"Update LickMyPaw to a version that includes it." = "Aggiorna LickMyPaw a una versione che lo include.";
+"Update macOS to use it. Everything else in LickMyPaw works as usual." = "Aggiorna macOS per usarlo. Il resto di LickMyPaw funziona come sempre.";
+"Turn it on in System Settings, Apple Intelligence & Siri. The model runs on this Mac." = "Attivala in Impostazioni di Sistema, Apple Intelligence e Siri. Il modello gira su questo Mac.";
+"macOS is downloading the model. Keep the Mac on power and connected, then try again later." = "macOS sta scaricando il modello. Tieni il Mac collegato alla corrente e a internet, poi riprova più tardi.";
+"Try again later." = "Riprova più tardi.";
