@@ -4,6 +4,15 @@ All notable changes to LickMyPaw. Versions follow [semver](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Assistant (macOS 26 and later, with Apple Intelligence).** A chat bubble at the bottom of the sidebar opens an assistant over any page. Ask what takes up space, what can be cleaned, which apps you no longer use, what starts at login or which apps use the most memory. It runs on Apple's on-device model, reads only sizes, names and dates through eight fixed read-only tools, never what is inside your files, and cannot delete anything: it points you to the page that does. Answers come in the language of your question. On Macs without it, the bubble explains why and, when you can fix it, opens the right System Settings pane.
+- **Private Cloud Compute (macOS 27, experimental builds only).** An opt-in switch, off by default, lets longer conversations use Apple's Private Cloud Compute model. If it does not answer, this Mac answers and the chat says why.
+
+### Changed
+- The sidebar no longer scrolls: icons shrink to fit the window height.
+- Processes named only by a version number (for example `…/claude/versions/2.1.331`) are shown with their folder name.
+- CI builds on macOS 26 so release builds include the assistant.
+
 ### Fixed
 - **Updates tab:** Homebrew casks are matched to apps by the app each cask actually installed (from Homebrew's install receipt), not by guessing from the app name. Casks whose app has a different name now show their updates, and a cask can no longer claim an unrelated app that happens to share its name. Casks installed by old Homebrew versions without a receipt still fall back to the name.
 
