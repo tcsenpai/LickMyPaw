@@ -109,6 +109,25 @@ enum BrewOutdated {
     static func slug(_ s: String) -> String {
         String(s.lowercased().map { $0 == " " ? "-" : $0 }.filter { $0.isASCII && ($0.isLetter || $0.isNumber || "-+@".contains($0)) })
     }
+    /// token -> .app file names it installed, from Caskroom/<token>/.metadata/INSTALL_RECEIPT.json (`app "A.app", target: "B.app"` installs B.app).
+    static func installedApps(prefix: String) -> [String: Set<String>] {
+        let room = prefix + "/Caskroom"
+        var out: [String: Set<String>] = [:]
+        for t in (try? FileManager.default.contentsOfDirectory(atPath: room)) ?? [] {
+            guard let d = FileManager.default.contents(atPath: "\(room)/\(t)/.metadata/INSTALL_RECEIPT.json"),
+                  let j = try? JSONSerialization.jsonObject(with: d) as? [String: Any], let arts = j["uninstall_artifacts"] as? [[String: Any]] else { continue }
+            for case let a as [Any] in arts.compactMap({ $0["app"] }) {
+                let target = a.compactMap { ($0 as? [String: Any])?["target"] as? String }.first
+                for case let src as String in a.prefix(1) { out[t, default: []].insert(((target ?? src) as NSString).lastPathComponent) }
+            }
+        }
+        return out
+    }
+    /// Receipt first: a cask whose receipt names its apps matches only those. Name slug only for casks without a receipt (old brew).
+    static func matches(token: String, appFile: String, name: String, fileName: String, receipts: [String: Set<String>]) -> Bool {
+        if let apps = receipts[token] { return apps.contains(appFile) }
+        return [slug(name), slug(fileName)].contains(token)
+    }
 }
 
 // MARK: inventory + classification
@@ -260,8 +279,9 @@ struct WorkspaceOpener: AppOpener {
             let runner = self.runner, env = ClamInstall.environment(prefix: ClamInstall.prefix(ofBrew: brew)), flag = CancelFlag()
             let r = await Task.detached { runner.run(brew, ["outdated", "--cask", "--greedy", "--json=v2"], env: env, timeout: 120, cancel: flag, onLine: { _ in }) }.value
             if r.launchError == nil && !r.timedOut, let casks = BrewOutdated.parse(r.output) {
+                let receipts = BrewOutdated.installedApps(prefix: ClamInstall.prefix(ofBrew: brew))
                 for c in casks {
-                    guard let i = entries.firstIndex(where: { [BrewOutdated.slug($0.name), BrewOutdated.slug($0.fileName)].contains(c.token) && $0.kind != .appStore }) else { continue }
+                    guard let i = entries.firstIndex(where: { $0.kind != .appStore && BrewOutdated.matches(token: c.token, appFile: ($0.path as NSString).lastPathComponent, name: $0.name, fileName: $0.fileName, receipts: receipts) }) else { continue }
                     entries[i].kind = .brew; entries[i].brewToken = c.token; entries[i].status = .available(c.current)
                 }
             } else { brewNote = "Homebrew could not list outdated casks" }

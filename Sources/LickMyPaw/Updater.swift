@@ -186,6 +186,20 @@ enum UpdaterSelfTest {
         t.check(BrewOutdated.validToken("visual-studio-code") && BrewOutdated.validToken("font-fira-code@1") && !BrewOutdated.validToken("-evil") && !BrewOutdated.validToken("a b") && !BrewOutdated.validToken("a;rm") && !BrewOutdated.validToken(""), "cask token guard")
         t.check(BrewOutdated.slug("Visual Studio Code") == "visual-studio-code" && BrewOutdated.slug("1Password") == "1password", "app name slug")
 
+        // --- Caskroom receipts: which .app a cask installed ---
+        let cr = Fixture(); defer { cr.cleanup() }
+        func receipt(_ tok: String, _ json: String) { let d = cr.dir("Caskroom/\(tok)/.metadata"); try? json.write(toFile: d + "/INSTALL_RECEIPT.json", atomically: true, encoding: .utf8) }
+        receipt("visual-studio-code", #"{"uninstall_artifacts":[{"app":["Visual Studio Code.app"]},{"zap":[{"trash":["~/x"]}]}]}"#)
+        receipt("renamed", #"{"uninstall_artifacts":[{"app":["Src/Inner.app",{"target":"Shown Name.app"}]}]}"#)
+        receipt("broken", "not json"); cr.dir("Caskroom/noreceipt")
+        let ra = BrewOutdated.installedApps(prefix: cr.root)
+        t.check(ra == ["visual-studio-code": ["Visual Studio Code.app"], "renamed": ["Shown Name.app"]], "receipts: app names read, target wins, broken and missing receipts skipped"); t.reachedCode()
+        t.check(BrewOutdated.installedApps(prefix: cr.root + "/nope").isEmpty, "receipts: no Caskroom -> empty")
+        let m1 = { (tok: String, file: String, name: String) in BrewOutdated.matches(token: tok, appFile: file + ".app", name: name, fileName: file, receipts: ra) }
+        t.check(m1("renamed", "Shown Name", "Shown Name"), "match: receipt maps a token to an app with a different name")
+        t.check(!m1("visual-studio-code", "Visual Studio Code Insiders", "Visual Studio Code"), "match: receipt wins over a name slug that happens to equal the token")
+        t.check(m1("plain", "Plain", "Plain") && !m1("plain", "Other", "Other"), "match: name slug only for casks without a receipt")
+
         // --- inventory on a fixture, classification ---
         let f = Fixture(); defer { f.cleanup() }
         setenv("LICKMYPAW_HOME", f.home, 1); defer { unsetenv("LICKMYPAW_HOME") }
@@ -225,7 +239,9 @@ enum UpdaterSelfTest {
         let brew = FakeBrew(); let op = FakeOpener()
         let bdir = f.dir("fakebrew/bin"); let bexe = bdir + "/brew"; f.file("fakebrew/bin/brew")
         chmod(bexe, 0o755)
-        brew.outdatedJSON = "{\"formulae\":[],\"casks\":[{\"name\":\"foo-app\",\"installed_versions\":[\"1.0\"],\"current_version\":\"1.5\"},{\"name\":\"plain\",\"installed_versions\":[\"1.0\"],\"current_version\":\"2.0\"},{\"name\":\"store\",\"installed_versions\":[\"1.0\"],\"current_version\":\"9\"}]}"
+        // receipts: foo-app installed "Foo App.app"; the cask named "spark" installed some other app, so it must not claim Spark
+        for (tok, app) in [("foo-app", "Foo App.app"), ("spark", "Spark Helper.app")] { try? "{\"uninstall_artifacts\":[{\"app\":[\"\(app)\"]}]}".write(toFile: f.dir("fakebrew/Caskroom/\(tok)/.metadata") + "/INSTALL_RECEIPT.json", atomically: true, encoding: .utf8) }
+        brew.outdatedJSON = "{\"formulae\":[],\"casks\":[{\"name\":\"spark\",\"installed_versions\":[\"1.0\"],\"current_version\":\"9.9\"},{\"name\":\"foo-app\",\"installed_versions\":[\"1.0\"],\"current_version\":\"1.5\"},{\"name\":\"plain\",\"installed_versions\":[\"1.0\"],\"current_version\":\"2.0\"},{\"name\":\"store\",\"installed_versions\":[\"1.0\"],\"current_version\":\"9\"}]}"
         final class Cnt: @unchecked Sendable { var n = 0 }
         let loads = Cnt()
         let m = UpdaterModel()
@@ -235,7 +251,7 @@ enum UpdaterSelfTest {
         t.check(loads.n == 1 && m.entries.count == 9 && http.log.urls.isEmpty && brew.calls.isEmpty && m.checkedAt == nil, "open lists apps locally: no network, no brew, one load"); t.reachedCode()
         await m.check()
         let me = Dictionary(uniqueKeysWithValues: m.entries.map { ($0.name, $0) })
-        t.check(me["Spark"]?.status == .available("2.1") && me["Spark"]?.kind == .sparkle, "check: Sparkle update found")
+        t.check(me["Spark"]?.status == .available("2.1") && me["Spark"]?.kind == .sparkle, "check: Sparkle update found, a cask with the same name but another app does not claim it")
         t.check(me["Foo App"]?.kind == .brew && me["Foo App"]?.brewToken == "foo-app" && me["Foo App"]?.status == .available("1.5"), "check: brew cask outdated overrides Sparkle")
         t.check(me["Plain"]?.kind == .brew && me["Plain"]?.status == .available("2.0"), "check: manual app matched to a cask by name")
         t.check(me["Store"]?.kind == .appStore && me["Store"]?.status == .notChecked, "check: App Store app is never scripted nor guessed")
