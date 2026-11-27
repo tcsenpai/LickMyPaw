@@ -134,11 +134,13 @@ struct BubbleView: View {
                     .animation(.spring(response: 0.55, dampingFraction: 0.68).delay(Double(b.id) * 0.035), value: shown)
                     .scaleEffect(hover == b.id ? 1.05 : 1)
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hover)
-                    .position(b.center)
+                    // hit area = this circle; after .position the frame is the whole canvas and the topmost bubble steals every click (issue #1)
+                    .contentShape(Circle())
                     .onHover { hover = $0 ? b.id : (hover == b.id ? nil : hover) }
                     .onTapGesture(count: 2) { if let n = b.node { if n.isDir { onOpen(n) } else { onReveal(n) } } }
                     .onTapGesture { if let n = b.node { onToggle(n) } }
                     .contextMenu { if let n = b.node { Button(on ? T("Deselect") : T("Select")) { onToggle(n) } } }
+                    .position(b.center)
                 }
                 if let h = hover, let b = bubbles.first(where: { $0.id == h }) {
                     Text("\(b.label): \(fmt(b.size))").font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(.white)
@@ -169,5 +171,39 @@ struct Wrap<C: View>: View {
             }
         }
         else { content().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).clipped() }
+    }
+}
+
+/// Bubbles suite: a real double-click on each bubble, sent to an offscreen window, must open that bubble's folder (issue #1).
+enum BubblesSelfTest {
+    /// The selftest runs under dispatchMain, so AppKit only draws and delivers events while the run loop is pumped by hand.
+    private static func pump(_ s: TimeInterval) { RunLoop.main.run(until: Date().addingTimeInterval(s)) }
+    @MainActor static func run(_ t: TestCtx) async {
+        _ = NSApplication.shared; NSApp.setActivationPolicy(.prohibited)   // selftest has no app object; prohibited = no Dock icon, no focus steal
+        let root = Node(name: "root", path: "/tmp/lmp-bubbles", isDir: true)
+        for (i, s) in [900, 500, 300, 120, 60, 20].enumerated() {
+            let c = Node(name: "d\(i)", path: "/tmp/lmp-bubbles/d\(i)", isDir: true, size: Int64(s) << 20); c.parent = root; root.children.append(c)
+        }
+        let size = CGSize(width: 900, height: 600)
+        var opened: Node?
+        let host = NSHostingView(rootView: BubbleView(parent: root, checked: [], onOpen: { opened = $0 }, onToggle: { _ in }, scrollable: false)
+            .frame(width: size.width, height: size.height))
+        let w = NSWindow(contentRect: NSRect(x: -30000, y: -30000, width: size.width, height: size.height), styleMask: [.borderless], backing: .buffered, defer: false)
+        w.contentView = host; w.orderFrontRegardless(); defer { w.orderOut(nil) }   // far off-screen, never key
+        pump(1.2)   // let the pop-in animation finish
+        for b in makeBubbles(root, size: size) {
+            guard let n = b.node else { continue }
+            opened = nil
+            let p = NSPoint(x: b.center.x, y: size.height - b.center.y)   // SwiftUI is top-left, AppKit bottom-left
+            for clicks in 1...2 {
+                for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                    if let e = NSEvent.mouseEvent(with: type, location: p, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                  windowNumber: w.windowNumber, context: nil, eventNumber: 0, clickCount: clicks, pressure: 1) { w.sendEvent(e) }
+                }
+            }
+            pump(0.15)
+            if opened != nil { t.reachedCode() }
+            t.check(opened === n, "double-click on \(n.name) opens \(n.name) (got \(opened?.name ?? "nothing"))")
+        }
     }
 }

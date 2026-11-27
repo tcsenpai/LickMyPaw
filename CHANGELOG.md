@@ -2,6 +2,11 @@
 
 All notable changes to LickMyPaw. Versions follow [semver](https://semver.org/). Builds are unsigned and not notarized until 1.0.0.
 
+## [0.2.1] - 2026-11-27
+
+### Fixed
+- In Prowl, double-clicking a bubble could open a different folder, often a small one, and the tooltip named the wrong item. On macOS 15 each bubble took clicks across the whole view, so the bubble drawn last won every click. Clicks and hover now land only on the circle you point at. Thanks to @samsonvd for the report and the recording ([#1](https://github.com/tcsenpai/LickMyPaw/issues/1)).
+
 ## [0.2.0] - 2026-11-26
 
 The "feels like a real app" release: a menu bar item, five new tools, an updater, and fixes for two launch problems.

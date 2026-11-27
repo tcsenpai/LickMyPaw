@@ -34,6 +34,7 @@ enum SelfTests {
         ("maintenance", { await MaintenanceSelfTest.run($0) }),
         ("privacy", { await PrivacySelfTest.run($0) }),
         ("shredder", { await ShredderSelfTest.run($0) }),
+        ("bubbles", { await BubblesSelfTest.run($0) }),
     ]
 
     @MainActor static func main(only: String?) async -> Never {
